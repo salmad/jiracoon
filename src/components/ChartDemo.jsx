@@ -25,6 +25,12 @@ const ChartDemo = ({ prompt, onComplete }) => {
     // Annotations for specific events
     const annotations = [
       {
+        year: 2015,
+        text: 'Strong growth period',
+        description: 'Technology sector boom and low unemployment',
+        position: 'bottom'
+      },
+      {
         year: 2020,
         text: 'COVID-19 pandemic impact',
         description: 'Global pandemic led to economic slowdown',
@@ -162,6 +168,58 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .delay(300)
       .style('opacity', 1)
 
+    // Function to create confetti animation
+    const addConfetti = () => {
+      const confettiCount = 80
+      const confettiColors = [
+        'hsl(262, 83%, 58%)', // Primary purple
+        'hsl(213, 94%, 68%)', // Accent blue
+        'hsl(142, 71%, 45%)', // Green
+        'hsl(38, 92%, 50%)',  // Orange
+        'hsl(0, 84%, 60%)',   // Red
+      ]
+
+      const confettiGroup = svg.append('g').attr('class', 'confetti')
+
+      for (let i = 0; i < confettiCount; i++) {
+        const x = Math.random() * width
+        const startY = -20 - Math.random() * 50
+        const endY = height + 50
+        const rotation = Math.random() * 720 - 360
+        const size = Math.random() * 8 + 4
+        const color = confettiColors[Math.floor(Math.random() * confettiColors.length)]
+        const delay = Math.random() * 400
+        const duration = 2000 + Math.random() * 1000
+        const drift = (Math.random() - 0.5) * 100
+
+        const confetti = confettiGroup
+          .append('rect')
+          .attr('x', x)
+          .attr('y', startY)
+          .attr('width', size)
+          .attr('height', size * 1.5)
+          .attr('rx', 1)
+          .attr('fill', color)
+          .style('opacity', 0.9)
+
+        confetti
+          .transition()
+          .delay(delay)
+          .duration(duration)
+          .ease(d3.easeQuadIn)
+          .attrTween('transform', function() {
+            return function(t) {
+              const currentY = startY + (endY - startY) * t
+              const currentX = x + drift * Math.sin(t * Math.PI * 2)
+              const currentRotation = rotation * t
+              return `translate(${currentX - x}, ${currentY - startY}) rotate(${currentRotation}, ${size / 2}, ${size * 0.75})`
+            }
+          })
+          .style('opacity', 0)
+          .remove()
+      }
+    }
+
     // Function to add annotations with proper text wrapping
     const addAnnotations = () => {
       annotations.forEach((annotation, idx) => {
@@ -257,7 +315,11 @@ const ChartDemo = ({ prompt, onComplete }) => {
             if (idx === annotations.length - 1) {
               // Annotations complete - set progress to 100%
               setProgress(100)
-              setTimeout(onComplete, 500)
+              // Trigger confetti after a brief delay
+              setTimeout(() => {
+                addConfetti()
+                setTimeout(onComplete, 500)
+              }, 300)
             } else {
               // Update progress as annotations appear (70-100%)
               const annotationProgress = 70 + ((idx + 1) / annotations.length) * 30
@@ -300,15 +362,15 @@ const ChartDemo = ({ prompt, onComplete }) => {
     defs
       .append('marker')
       .attr('id', 'arrowhead')
-      .attr('markerWidth', 10)
-      .attr('markerHeight', 10)
-      .attr('refX', 5)
-      .attr('refY', 5)
+      .attr('markerWidth', 6)
+      .attr('markerHeight', 6)
+      .attr('refX', 3)
+      .attr('refY', 3)
       .attr('orient', 'auto')
       .append('path')
-      .attr('d', 'M 0,0 L 10,5 L 0,10 L 2,5 Z')
+      .attr('d', 'M 0,0 L 6,3 L 0,6 L 1.5,3 Z')
       .attr('fill', 'hsl(213, 94%, 68%)')
-      .style('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))')
+      .style('filter', 'drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.15))')
 
     // Add bars (recharts style)
     const bars = svg
