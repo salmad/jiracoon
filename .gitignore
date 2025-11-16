@@ -31,6 +31,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!src/lib/
 lib64/
 parts/
 sdist/
@@ -221,3 +222,30 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# React / Vite specific
+# Local environment variables (don't commit secrets)
+.env.local
+.env.*.local
+
+# Vite cache and node modules cache
+.vite
+node_modules/.vite/
+node_modules/
+
+# Optional build outputs from various tools
+build/
+out/
+
+# Storybook / static storybook builds
+.storybook/
+.storybook-static/
+
+# Parcel and other tool caches
+.parcel-cache/
+.cache/
+
+# Local editor and OS files
+.vscode/
+Thumbs.db
+ehthumbs.db
