@@ -1,9 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
+import Confetti from 'react-confetti'
 
 const ChartDemo = ({ prompt, onComplete }) => {
   const svgRef = useRef(null)
+  const containerRef = useRef(null)
   const [progress, setProgress] = useState(0)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+
+  // Track container dimensions for confetti
+  useEffect(() => {
+    if (!containerRef.current) return
+
+    const updateDimensions = () => {
+      const rect = containerRef.current.getBoundingClientRect()
+      setDimensions({ width: rect.width, height: rect.height })
+    }
+
+    updateDimensions()
+    window.addEventListener('resize', updateDimensions)
+    return () => window.removeEventListener('resize', updateDimensions)
+  }, [])
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -168,56 +186,62 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .delay(300)
       .style('opacity', 1)
 
-    // Function to create confetti animation
-    const addConfetti = () => {
-      const confettiCount = 80
-      const confettiColors = [
-        'hsl(262, 83%, 58%)', // Primary purple
-        'hsl(213, 94%, 68%)', // Accent blue
-        'hsl(142, 71%, 45%)', // Green
-        'hsl(38, 92%, 50%)',  // Orange
-        'hsl(0, 84%, 60%)',   // Red
-      ]
+    // Function to add value labels on top of bars with magic effect
+    const addBarLabels = () => {
+      data.forEach((d, i) => {
+        const x = xScale(d.year) + xScale.bandwidth() / 2
+        const y = yScale(d.gdp)
 
-      const confettiGroup = svg.append('g').attr('class', 'confetti')
-
-      for (let i = 0; i < confettiCount; i++) {
-        const x = Math.random() * width
-        const startY = -20 - Math.random() * 50
-        const endY = height + 50
-        const rotation = Math.random() * 720 - 360
-        const size = Math.random() * 8 + 4
-        const color = confettiColors[Math.floor(Math.random() * confettiColors.length)]
-        const delay = Math.random() * 400
-        const duration = 2000 + Math.random() * 1000
-        const drift = (Math.random() - 0.5) * 100
-
-        const confetti = confettiGroup
-          .append('rect')
-          .attr('x', x)
-          .attr('y', startY)
-          .attr('width', size)
-          .attr('height', size * 1.5)
-          .attr('rx', 1)
-          .attr('fill', color)
-          .style('opacity', 0.9)
-
-        confetti
-          .transition()
-          .delay(delay)
-          .duration(duration)
-          .ease(d3.easeQuadIn)
-          .attrTween('transform', function() {
-            return function(t) {
-              const currentY = startY + (endY - startY) * t
-              const currentX = x + drift * Math.sin(t * Math.PI * 2)
-              const currentRotation = rotation * t
-              return `translate(${currentX - x}, ${currentY - startY}) rotate(${currentRotation}, ${size / 2}, ${size * 0.75})`
-            }
-          })
+        // Create label group
+        const labelGroup = svg
+          .append('g')
+          .attr('class', 'bar-label')
+          .attr('transform', `translate(${x}, ${y - 12})`)
           .style('opacity', 0)
-          .remove()
-      }
+
+        // Add sparkle/star effect
+        const sparkle = labelGroup
+          .append('text')
+          .attr('text-anchor', 'middle')
+          .attr('y', -8)
+          .style('font-size', '16px')
+          .text('✨')
+          .style('opacity', 0)
+
+        // Add value label
+        const label = labelGroup
+          .append('text')
+          .attr('text-anchor', 'middle')
+          .attr('y', 0)
+          .style('font-size', '13px')
+          .style('font-weight', '600')
+          .style('fill', 'hsl(262, 83%, 58%)')
+          .style('font-family', 'inherit')
+          .text(`$${d.gdp}T`)
+
+        // Animate sparkle
+        sparkle
+          .transition()
+          .delay(i * 100)
+          .duration(300)
+          .ease(d3.easeBackOut)
+          .style('opacity', 1)
+          .transition()
+          .duration(200)
+          .style('opacity', 0)
+
+        // Animate label with scale and fade
+        labelGroup
+          .transition()
+          .delay(i * 100 + 150)
+          .duration(400)
+          .ease(d3.easeBackOut.overshoot(1.5))
+          .style('opacity', 1)
+          .attr('transform', `translate(${x}, ${y - 12}) scale(1)`)
+          .on('start', function() {
+            d3.select(this).attr('transform', `translate(${x}, ${y - 12}) scale(0.3)`)
+          })
+      })
     }
 
     // Function to add annotations with proper text wrapping
@@ -325,8 +349,11 @@ const ChartDemo = ({ prompt, onComplete }) => {
               setProgress(100)
               // Trigger confetti after a brief delay
               setTimeout(() => {
-                addConfetti()
-                setTimeout(onComplete, 500)
+                setShowConfetti(true)
+                setTimeout(() => {
+                  setShowConfetti(false)
+                  onComplete()
+                }, 3000)
               }, 300)
             } else {
               // Update progress as annotations appear (70-100%)
@@ -377,9 +404,13 @@ const ChartDemo = ({ prompt, onComplete }) => {
           const progress = Math.round((completedBars / data.length) * 70)
           setProgress(progress)
 
-          // After last bar completes, trigger annotations
+          // After last bar completes, add labels then annotations
           if (i === data.length - 1) {
-            setTimeout(() => addAnnotations(), 200)
+            setTimeout(() => {
+              addBarLabels()
+              // Wait for labels to finish before showing annotations
+              setTimeout(() => addAnnotations(), 1200)
+            }, 200)
           }
         })
     })
@@ -404,7 +435,29 @@ const ChartDemo = ({ prompt, onComplete }) => {
   }, [prompt, onComplete])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" ref={containerRef}>
+      {showConfetti && (
+        <Confetti
+          width={dimensions.width}
+          height={dimensions.height}
+          numberOfPieces={200}
+          recycle={false}
+          colors={[
+            '#8b5cf6', // Primary purple
+            '#60a5fa', // Accent blue
+            '#34d399', // Green
+            '#fbbf24', // Orange
+            '#f87171', // Red
+          ]}
+          gravity={0.25}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            zIndex: 10,
+          }}
+        />
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-muted-foreground">
