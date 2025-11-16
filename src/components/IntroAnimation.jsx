@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
 import * as d3 from 'd3'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Sparkles } from 'lucide-react'
 
 const IntroAnimation = ({ onComplete }) => {
-  const [stage, setStage] = useState('thoughts') // thoughts, shatter, dispose, fadeout, complete
+  const [stage, setStage] = useState('thoughts') // thoughts, shatter, dispose, solution, complete
   const [visibleBubbles, setVisibleBubbles] = useState(0)
   const chartRef = useRef(null)
   const containerRef = useRef(null)
@@ -157,18 +157,19 @@ const IntroAnimation = ({ onComplete }) => {
 
   const handleDisposeComplete = () => {
     setTimeout(() => {
-      setStage('fadeout')
-      // After fade out completes, call onComplete
-      setTimeout(onComplete, 1000)
-    }, 800)
+      setStage('solution')
+    }, 500)
+  }
+
+  const handleSolutionComplete = () => {
+    // After chat slides away, call onComplete
+    setTimeout(onComplete, 500)
   }
 
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-[600px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 transition-opacity duration-1000 ${
-        stage === 'fadeout' ? 'opacity-0' : 'opacity-100'
-      }`}
+      className="relative w-full h-[600px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100"
     >
       {/* Chart and Thought Bubbles - visible during thoughts and shatter */}
       {(stage === 'thoughts' || stage === 'shatter') && (
@@ -215,6 +216,13 @@ const IntroAnimation = ({ onComplete }) => {
       {stage === 'dispose' && (
         <div className="absolute inset-0 flex items-center justify-center">
           <TrashBinAnimation onComplete={handleDisposeComplete} />
+        </div>
+      )}
+
+      {/* Solution Stage - Chat Console */}
+      {stage === 'solution' && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <SolutionAnimation onComplete={handleSolutionComplete} />
         </div>
       )}
     </div>
@@ -329,6 +337,100 @@ const TrashBinAnimation = ({ onComplete }) => {
         <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
           ✓ Gone for good!
         </span>
+      </div>
+    </div>
+  )
+}
+
+const SolutionAnimation = ({ onComplete }) => {
+  const [showHeading, setShowHeading] = useState(false)
+  const [chatPosition, setChatPosition] = useState('right') // right, center, slide-out
+  const [typedText, setTypedText] = useState('')
+  const fullText = "can you plot US GDP by year and highlight covid period"
+
+  useEffect(() => {
+    // Step 1: Show heading (1s)
+    setTimeout(() => setShowHeading(true), 300)
+
+    // Step 2: Slide chat in from right (1.5s)
+    setTimeout(() => setChatPosition('center'), 1500)
+
+    // Step 3: Start typing after chat is centered (2.5s)
+    setTimeout(() => {
+      let currentIndex = 0
+      const typingInterval = setInterval(() => {
+        if (currentIndex <= fullText.length) {
+          setTypedText(fullText.slice(0, currentIndex))
+          currentIndex++
+        } else {
+          clearInterval(typingInterval)
+          // Step 4: Slide chat out after typing is done (wait 1s)
+          setTimeout(() => {
+            setChatPosition('slide-out')
+            // Complete after slide out animation (1s)
+            setTimeout(onComplete, 1000)
+          }, 1000)
+        }
+      }, 50) // 50ms per character for typing effect
+    }, 2500)
+  }, [onComplete, fullText])
+
+  return (
+    <div className="relative w-full h-full flex flex-col items-center justify-center">
+      {/* "There is a better way..." heading */}
+      <div
+        className={`mb-16 transition-all duration-1000 ${
+          showHeading ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
+        }`}
+      >
+        <h2 className="text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent text-center">
+          There is a better way...
+        </h2>
+      </div>
+
+      {/* Chat Console */}
+      <div
+        className={`transition-all duration-1000 ease-out ${
+          chatPosition === 'right'
+            ? 'translate-x-[800px] opacity-0'
+            : chatPosition === 'center'
+            ? 'translate-x-0 opacity-100'
+            : 'translate-x-[800px] opacity-0'
+        }`}
+      >
+        <div className="bg-white rounded-2xl shadow-premium-lg border-2 border-primary/20 p-6 w-[600px]">
+          {/* Chat Header */}
+          <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="font-semibold text-slate-900">Jiracoon AI</div>
+              <div className="text-xs text-slate-500">Your chart assistant</div>
+            </div>
+          </div>
+
+          {/* Chat Input Area */}
+          <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <div className="text-sm text-slate-700 font-mono">
+                  {typedText}
+                  {typedText.length < fullText.length && (
+                    <span className="inline-block w-0.5 h-4 bg-primary ml-0.5 animate-pulse"></span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Send Button */}
+          <div className="mt-4 flex justify-end">
+            <button className="px-4 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all">
+              Generate Chart
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
