@@ -332,14 +332,14 @@ const ChartDemo = ({ prompt, onComplete }) => {
               setProgress(100)
               // Trigger premium confetti explosion after a brief delay
               setTimeout(() => {
-                // Create a stunning confetti explosion from the center of the chart
-                const duration = 3000
-                const animationEnd = Date.now() + duration
-                const defaults = {
-                  startVelocity: 30,
+                // Single stunning confetti explosion from the center
+                confetti({
+                  particleCount: 150,
                   spread: 360,
-                  ticks: 60,
-                  zIndex: 0,
+                  startVelocity: 25,
+                  gravity: 0.5,
+                  ticks: 200,
+                  origin: { x: 0.5, y: 0.5 },
                   colors: [
                     '#8b5cf6', // Primary purple
                     '#60a5fa', // Accent blue
@@ -347,26 +347,10 @@ const ChartDemo = ({ prompt, onComplete }) => {
                     '#fbbf24', // Orange
                     '#f87171', // Red
                   ]
-                }
+                })
 
-                const interval = setInterval(() => {
-                  const timeLeft = animationEnd - Date.now()
-
-                  if (timeLeft <= 0) {
-                    clearInterval(interval)
-                    onComplete()
-                    return
-                  }
-
-                  const particleCount = 50 * (timeLeft / duration)
-
-                  // Fire confetti from center of chart area
-                  confetti({
-                    ...defaults,
-                    particleCount,
-                    origin: { x: 0.5, y: 0.5 }
-                  })
-                }, 250)
+                // Call onComplete after confetti settles
+                setTimeout(onComplete, 2000)
               }, 300)
             } else {
               // Update progress as annotations appear (70-100%)
