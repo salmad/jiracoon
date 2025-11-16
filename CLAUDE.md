@@ -85,7 +85,8 @@ src/
 │   └── ui/                     # shadcn UI components
 │       ├── button.jsx
 │       ├── input.jsx
-│       └── card.jsx
+│       ├── card.jsx
+│       └── badge.jsx
 └── lib/
     └── utils.js                # Utility functions (cn for class merging)
 ```
@@ -109,11 +110,91 @@ When adding new shadcn components:
 
 ### Working with D3 Animations
 
+**Animation & Transitions:**
 - Use `useRef` to access SVG DOM elements
 - Leverage D3 transitions for smooth animations
 - Use `d3.easeLinear` for timeline-based animations
 - Chain transitions with `.transition().delay()` for sequential effects
 - Report progress using transition tweens
+
+**Recharts-like Chart Styling:**
+
+The D3 charts should follow shadcn/recharts visual design patterns for consistency:
+
+1. **Grid Lines:**
+   - Use subtle, dashed horizontal grid lines
+   - Color: `hsl(240, 6%, 90%)` with 50% opacity
+   - Pattern: `stroke-dasharray: "3,3"`
+   - Only show horizontal lines, not vertical
+
+2. **Axes:**
+   - Remove tick marks with `tickSize(0)`
+   - Use `tickPadding(12)` for breathing room
+   - Font size: `12px`, weight: `400`
+   - Color: `hsl(240, 4%, 46%)` (muted text)
+   - Domain line: `hsl(240, 6%, 90%)` (subtle border)
+   - Font: `inherit` to use system font stack
+
+3. **Chart Lines:**
+   - Stroke width: `2.5px` (thinner than default)
+   - Use `stroke-linecap: "round"` and `stroke-linejoin: "round"` for smooth corners
+   - Color: `hsl(262, 83%, 58%)` (primary)
+
+4. **Data Points:**
+   - Radius: `4px` (smaller, more refined)
+   - White fill with colored stroke
+   - Stroke width: `2.5px`
+   - Stroke color: `hsl(262, 83%, 58%)` (primary)
+
+5. **Typography:**
+   - Title: 14px, weight 600, color `hsl(240, 10%, 3.9%)`
+   - Axis labels: 12px, weight 500, color `hsl(240, 4%, 46%)`
+   - All text uses `font-family: inherit`
+
+6. **Annotations:**
+   - Use `foreignObject` for text with HTML/CSS to ensure proper wrapping and styling
+   - Arrow markers: Define reusable SVG markers
+   - Colors: Match primary theme colors
+
+**Chart Dimensions:**
+- Account for margins (top: 100, bottom: 120) to accommodate annotations
+- Use `.nice()` on scales for cleaner axis values
+
+### Design System
+
+**Premium Design Philosophy**
+
+The UI follows a premium design system inspired by Linear, Intercom, Revolut, and Framer. The key principles are:
+
+1. **Clean Minimalism**: Focused layouts with ample whitespace
+2. **Premium Color Palette**: Purple/violet primary (Linear-inspired), vibrant blue accents (Intercom-inspired)
+3. **Smooth Animations**: Timeline-driven transitions that feel polished
+4. **Excellent Typography**: Proper font sizing, weights, and line heights
+5. **Subtle Depth**: Premium shadows and borders, not heavy drop shadows
+
+**Color Variables** (defined in `src/index.css`):
+
+- `--primary: 262 83% 58%` - Purple/violet for primary actions and branding
+- `--accent: 213 94% 68%` - Vibrant blue for accents and highlights
+- `--muted: 240 5% 96%` - Subtle gray for backgrounds
+- `--border: 240 6% 90%` - Soft borders
+- Chart colors: `--chart-1` through `--chart-4` for data visualization
+
+**Premium Utility Classes**:
+
+- `.gradient-primary` - Purple to blue gradient
+- `.gradient-subtle` - Subtle background gradient
+- `.shadow-premium` - Soft, layered shadow
+- `.shadow-premium-lg` - Larger premium shadow for cards
+- `.glass` / `.glass-dark` - Glassmorphism effects
+
+**Component Styling Guidelines**:
+
+- Cards: Use `shadow-premium-lg` and `border-2` for elevated look
+- Buttons: Primary actions use gradient backgrounds
+- Inputs: Larger touch targets (h-12) for better UX
+- Icons: Use Lucide React icons with consistent sizing (w-4 h-4 for inline, w-6 h-6 for headers)
+- Badges: Use for status indicators with semantic colors
 
 ### Styling Conventions
 
@@ -121,6 +202,7 @@ When adding new shadcn components:
 - Leverage CSS variables defined in `index.css` for theming
 - Use `cn()` utility to merge conditional classes
 - Follow dark mode support pattern with `dark:` prefix
+- Apply premium utilities (`.shadow-premium`, `.gradient-primary`) consistently
 
 ## Important Notes from claude.md
 
