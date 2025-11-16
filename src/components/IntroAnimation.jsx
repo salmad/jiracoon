@@ -31,14 +31,22 @@ const IntroAnimation = ({ onComplete }) => {
     if (stage === 'shatter' && chartRef.current) {
       // Stage 2: Shatter animation
       animateShatter()
+    } else if (stage === 'dispose') {
+      // Clean up any remaining shatter SVGs
+      d3.select(containerRef.current).selectAll('.shatter-svg').remove()
     }
   }, [stage])
 
   const animateShatter = () => {
     const chart = d3.select(chartRef.current)
-    const rect = chartRef.current.getBoundingClientRect()
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
+    const chartRect = chartRef.current.getBoundingClientRect()
+    const containerRect = containerRef.current.getBoundingClientRect()
+
+    // Calculate chart center relative to container
+    const offsetX = chartRect.left - containerRect.left
+    const offsetY = chartRect.top - containerRect.top
+    const centerX = offsetX + chartRect.width / 2
+    const centerY = offsetY + chartRect.height / 2
 
     // Create shatter pieces (irregular polygon shards)
     const pieces = []
@@ -80,8 +88,9 @@ const IntroAnimation = ({ onComplete }) => {
 
     // Create gradient for glass effect
     const defs = svg.append('defs')
+    const gradientId = `glassGradient-${Date.now()}`
     const glassGradient = defs.append('linearGradient')
-      .attr('id', 'glassGradient')
+      .attr('id', gradientId)
       .attr('x1', '0%')
       .attr('y1', '0%')
       .attr('x2', '100%')
@@ -113,7 +122,7 @@ const IntroAnimation = ({ onComplete }) => {
     // Each shard is an irregular triangle
     shards.append('path')
       .attr('d', () => {
-        const size = 20 + Math.random() * 30
+        const size = 30 + Math.random() * 40
         const points = [
           [0, -size],
           [size * 0.8, size * 0.5],
@@ -121,10 +130,11 @@ const IntroAnimation = ({ onComplete }) => {
         ]
         return `M ${points.map(p => p.join(',')).join(' L ')} Z`
       })
-      .attr('fill', 'url(#glassGradient)')
+      .attr('fill', `url(#${gradientId})`)
       .attr('stroke', '#818cf8')
-      .attr('stroke-width', 2)
-      .style('filter', 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))')
+      .attr('stroke-width', 3)
+      .style('filter', 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5))')
+      .style('opacity', 1)
 
     // Animate shards flying out and fading
     shards.transition()
@@ -160,32 +170,32 @@ const IntroAnimation = ({ onComplete }) => {
         stage === 'fadeout' ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      {/* Thought Bubbles */}
-      {stage === 'thoughts' && (
+      {/* Chart and Thought Bubbles - visible during thoughts and shatter */}
+      {(stage === 'thoughts' || stage === 'shatter') && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="relative">
-            {/* Thought Bubble 1 - Top Left */}
-            {visibleBubbles >= 1 && (
+            {/* Thought Bubble 1 - Top Left - only during thoughts */}
+            {stage === 'thoughts' && visibleBubbles >= 1 && (
               <div className="absolute -top-28 -left-40 animate-in fade-in zoom-in duration-700">
                 <ThoughtBubble text="Stuck with ugly Google Charts?" position="top-left" />
               </div>
             )}
 
-            {/* Thought Bubble 2 - Top Right */}
-            {visibleBubbles >= 2 && (
+            {/* Thought Bubble 2 - Top Right - only during thoughts */}
+            {stage === 'thoughts' && visibleBubbles >= 2 && (
               <div className="absolute -top-32 -right-44 animate-in fade-in zoom-in duration-700">
                 <ThoughtBubble text="Frustrated with configuration?" position="top-right" />
               </div>
             )}
 
-            {/* Thought Bubble 3 - Bottom */}
-            {visibleBubbles >= 3 && (
+            {/* Thought Bubble 3 - Bottom - only during thoughts */}
+            {stage === 'thoughts' && visibleBubbles >= 3 && (
               <div className="absolute -bottom-28 left-1/2 -translate-x-1/2 animate-in fade-in zoom-in duration-700">
                 <ThoughtBubble text="Wish there was a better way?" position="bottom" />
               </div>
             )}
 
-            {/* Ugly Google Chart */}
+            {/* Ugly Google Chart - visible during thoughts and shatter */}
             <div
               ref={chartRef}
               className="animate-in fade-in zoom-in duration-700 shadow-2xl rounded-lg overflow-hidden border-4 border-slate-300"
