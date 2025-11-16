@@ -295,32 +295,35 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .attr('fill', 'hsl(262, 83%, 58%)')
       .attr('rx', 4)
 
-    // Animate bars appearing left to right, growing from bottom to top with bounce
-    bars
-      .transition()
-      .duration(600)
-      .delay((d, i) => 800 + i * 150)
-      .ease(d3.easeBackOut.overshoot(1.2))
-      .attr('y', (d) => yScale(d.gdp))
-      .attr('height', (d) => height - yScale(d.gdp))
-      .on('end', (d, i) => {
-        if (i === data.length - 1) {
-          // After all bars are drawn, add annotations
-          setTimeout(() => addAnnotations(), 200)
-        }
-      })
-
-    // Track progress based on number of bars completed
+    // Animate bars appearing left to right with bounce and settle effect
     let completedBars = 0
     bars.each(function(d, i) {
-      d3.select(this)
+      const bar = d3.select(this)
+      const finalY = yScale(d.gdp)
+      const finalHeight = height - yScale(d.gdp)
+
+      // First animation: rise with overshoot
+      bar
         .transition()
-        .duration(600)
+        .duration(500)
         .delay(800 + i * 150)
+        .ease(d3.easeBackOut.overshoot(1.3))
+        .attr('y', finalY)
+        .attr('height', finalHeight)
+        .transition() // Chain a second transition for settle
+        .duration(150)
+        .ease(d3.easeQuadOut)
+        .attr('y', finalY)
+        .attr('height', finalHeight)
         .on('end', function() {
           completedBars++
-          const progress = Math.round((completedBars / data.length) * 70) // 70% for bars
+          const progress = Math.round((completedBars / data.length) * 70)
           setProgress(progress)
+
+          // After last bar completes, trigger annotations
+          if (i === data.length - 1) {
+            setTimeout(() => addAnnotations(), 200)
+          }
         })
     })
 
