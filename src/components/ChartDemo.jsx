@@ -67,6 +67,45 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`)
 
+    // Define gradients for bars
+    const defs = svg.append('defs')
+
+    // Primary gradient (purple)
+    const primaryGradient = defs.append('linearGradient')
+      .attr('id', 'barGradientPrimary')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '0%')
+      .attr('y2', '100%')
+
+    primaryGradient.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color', 'hsl(262, 83%, 65%)')
+      .attr('stop-opacity', 1)
+
+    primaryGradient.append('stop')
+      .attr('offset', '100%')
+      .attr('stop-color', 'hsl(262, 83%, 52%)')
+      .attr('stop-opacity', 1)
+
+    // Accent gradient (for 2020 - pandemic year)
+    const accentGradient = defs.append('linearGradient')
+      .attr('id', 'barGradientAccent')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '0%')
+      .attr('y2', '100%')
+
+    accentGradient.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color', 'hsl(0, 84%, 68%)')
+      .attr('stop-opacity', 1)
+
+    accentGradient.append('stop')
+      .attr('offset', '100%')
+      .attr('stop-color', 'hsl(0, 84%, 55%)')
+      .attr('stop-opacity', 1)
+
     // Create scales - use scaleBand for bar chart
     const xScale = d3
       .scaleBand()
@@ -224,6 +263,15 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .on('start', function() {
             d3.select(this).attr('transform', `translate(${x}, ${y - 12}) scale(0.3)`)
           })
+          .transition() // Add subtle pulse after appearing
+          .delay(200)
+          .duration(600)
+          .ease(d3.easeSinInOut)
+          .attr('transform', `translate(${x}, ${y - 12}) scale(1.08)`)
+          .transition()
+          .duration(600)
+          .ease(d3.easeSinInOut)
+          .attr('transform', `translate(${x}, ${y - 12}) scale(1)`)
       })
     }
 
@@ -239,7 +287,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
         const arrowLength = 50
         const isTop = annotation.position === 'top'
         const arrowEndY = isTop ? y - arrowLength : y + arrowLength
-        const cardWidth = 220
+        const cardWidth = 180
         const cardHeight = 70
 
         // Ensure cards fit within chart bounds
@@ -291,18 +339,18 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .attr('fill', 'hsl(213, 94%, 68%)')
           .style('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))')
 
-        // Draw card background with premium styling
+        // Draw card background with glassmorphic styling
         annotationGroup
           .append('rect')
           .attr('x', cardX)
           .attr('y', cardY)
           .attr('width', cardWidth)
           .attr('height', cardHeight)
-          .attr('fill', 'white')
+          .attr('fill', 'rgba(255, 255, 255, 0.85)')
           .attr('stroke', 'hsl(213, 94%, 68%)')
-          .attr('stroke-width', 2)
-          .attr('rx', 8)
-          .style('filter', 'drop-shadow(0 4px 16px rgba(0, 0, 0, 0.12))')
+          .attr('stroke-width', 1.5)
+          .attr('rx', 12)
+          .style('filter', 'drop-shadow(0 8px 32px rgba(0, 0, 0, 0.1)) blur(0.5px)')
 
         // Use foreignObject for better text wrapping
         const foreignObject = annotationGroup
@@ -320,11 +368,14 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .style('display', 'flex')
           .style('flex-direction', 'column')
           .style('justify-content', 'center')
+          .style('backdrop-filter', 'blur(12px)')
+          .style('-webkit-backdrop-filter', 'blur(12px)')
+          .style('border-radius', '12px')
           .html(`
-            <div style="font-size: 13px; font-weight: 600; color: hsl(240, 10%, 3.9%); margin-bottom: 4px; line-height: 1.3;">
+            <div style="font-size: 12px; font-weight: 600; color: hsl(240, 10%, 3.9%); margin-bottom: 4px; line-height: 1.3;">
               ${annotation.text}
             </div>
-            <div style="font-size: 11px; color: hsl(240, 4%, 46%); line-height: 1.4;">
+            <div style="font-size: 10.5px; color: hsl(240, 4%, 46%); line-height: 1.4;">
               ${annotation.description}
             </div>
           `)
@@ -371,7 +422,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
     }
 
 
-    // Add bars (recharts style)
+    // Add bars (recharts style with gradient)
     const bars = svg
       .selectAll('.bar')
       .data(data)
@@ -382,8 +433,9 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .attr('y', height)
       .attr('width', xScale.bandwidth())
       .attr('height', 0)
-      .attr('fill', 'hsl(262, 83%, 58%)')
+      .attr('fill', (d) => d.year === 2020 ? 'url(#barGradientAccent)' : 'url(#barGradientPrimary)')
       .attr('rx', 4)
+      .style('filter', 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))')
 
     // Animate bars appearing left to right with bounce and settle effect
     let completedBars = 0
@@ -392,11 +444,11 @@ const ChartDemo = ({ prompt, onComplete }) => {
       const finalY = yScale(d.gdp)
       const finalHeight = height - yScale(d.gdp)
 
-      // First animation: rise with overshoot
+      // First animation: rise with overshoot (starts after title)
       bar
         .transition()
         .duration(500)
-        .delay(800 + i * 150)
+        .delay(1000 + i * 150)
         .ease(d3.easeBackOut.overshoot(1.3))
         .attr('y', finalY)
         .attr('height', finalHeight)
@@ -421,22 +473,35 @@ const ChartDemo = ({ prompt, onComplete }) => {
         })
     })
 
-    // Add title (recharts style - more subtle)
-    svg
+    // Add title with beautiful entrance animation (before bars)
+    const titleGroup = svg
+      .append('g')
+      .attr('transform', `translate(${width / 2}, -90)`)
+
+    const title = titleGroup
       .append('text')
-      .attr('x', width / 2)
-      .attr('y', -90)
       .attr('text-anchor', 'middle')
-      .style('font-size', '14px')
-      .style('font-weight', '600')
+      .style('font-size', '16px')
+      .style('font-weight', '700')
       .style('fill', 'hsl(240, 10%, 3.9%)')
       .style('font-family', 'inherit')
+      .style('letter-spacing', '-0.02em')
       .text('US GDP Over Time')
       .style('opacity', 0)
+
+    // Animate title with elegant fade and scale
+    titleGroup
+      .attr('transform', `translate(${width / 2}, -90) scale(0.9)`)
+      .style('opacity', 0)
       .transition()
-      .duration(500)
-      .delay(200)
+      .duration(800)
+      .delay(100)
+      .ease(d3.easeBackOut.overshoot(1.1))
+      .attr('transform', `translate(${width / 2}, -90) scale(1)`)
       .style('opacity', 1)
+      .on('end', function() {
+        d3.select(this).select('text').style('opacity', 1)
+      })
 
   }, [prompt, onComplete])
 
