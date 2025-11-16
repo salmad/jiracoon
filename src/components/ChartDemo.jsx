@@ -70,34 +70,91 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .scaleLinear()
       .domain([0, d3.max(data, (d) => d.gdp) * 1.1])
       .range([height, 0])
+      .nice()
 
-    // Add X axis
-    svg
+    // Add subtle grid lines (recharts style)
+    const gridGroup = svg.append('g').attr('class', 'grid')
+
+    // Horizontal grid lines
+    gridGroup
+      .selectAll('.grid-line-y')
+      .data(yScale.ticks(5))
+      .enter()
+      .append('line')
+      .attr('class', 'grid-line-y')
+      .attr('x1', 0)
+      .attr('x2', width)
+      .attr('y1', (d) => yScale(d))
+      .attr('y2', (d) => yScale(d))
+      .attr('stroke', 'hsl(240, 6%, 90%)')
+      .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '3,3')
+      .style('opacity', 0)
+      .transition()
+      .duration(500)
+      .style('opacity', 0.5)
+
+    // Add X axis with recharts-like styling
+    const xAxis = svg
       .append('g')
+      .attr('class', 'x-axis')
       .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom(xScale).tickFormat(d3.format('d')))
-      .style('opacity', 0)
+      .call(
+        d3.axisBottom(xScale)
+          .tickFormat(d3.format('d'))
+          .tickSize(0)
+          .tickPadding(12)
+      )
+
+    // Style X axis
+    xAxis.select('.domain').attr('stroke', 'hsl(240, 6%, 90%)')
+    xAxis.selectAll('text')
+      .style('font-size', '12px')
+      .style('font-weight', '400')
+      .style('fill', 'hsl(240, 4%, 46%)')
+      .style('font-family', 'inherit')
+
+    xAxis.style('opacity', 0)
       .transition()
       .duration(500)
       .style('opacity', 1)
 
-    // Add Y axis
-    svg
+    // Add Y axis with recharts-like styling
+    const yAxis = svg
       .append('g')
-      .call(d3.axisLeft(yScale))
-      .style('opacity', 0)
+      .attr('class', 'y-axis')
+      .call(
+        d3.axisLeft(yScale)
+          .ticks(5)
+          .tickSize(0)
+          .tickPadding(12)
+          .tickFormat((d) => `$${d}T`)
+      )
+
+    // Style Y axis
+    yAxis.select('.domain').attr('stroke', 'hsl(240, 6%, 90%)')
+    yAxis.selectAll('text')
+      .style('font-size', '12px')
+      .style('font-weight', '400')
+      .style('fill', 'hsl(240, 4%, 46%)')
+      .style('font-family', 'inherit')
+
+    yAxis.style('opacity', 0)
       .transition()
       .duration(500)
       .style('opacity', 1)
 
-    // Add Y axis label
+    // Add Y axis label (recharts style - smaller, more subtle)
     svg
       .append('text')
       .attr('transform', 'rotate(-90)')
-      .attr('y', 0 - margin.left)
-      .attr('x', 0 - height / 2)
-      .attr('dy', '1em')
+      .attr('y', -50)
+      .attr('x', -height / 2)
       .style('text-anchor', 'middle')
+      .style('font-size', '12px')
+      .style('font-weight', '500')
+      .style('fill', 'hsl(240, 4%, 46%)')
+      .style('font-family', 'inherit')
       .text('GDP (Trillion USD)')
       .style('opacity', 0)
       .transition()
@@ -211,13 +268,15 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .y((d) => yScale(d.gdp))
       .curve(d3.curveMonotoneX)
 
-    // Add the line path
+    // Add the line path (recharts style - slightly thinner)
     const path = svg
       .append('path')
       .datum(data)
       .attr('fill', 'none')
       .attr('stroke', 'hsl(262, 83%, 58%)')
-      .attr('stroke-width', 3)
+      .attr('stroke-width', 2.5)
+      .attr('stroke-linecap', 'round')
+      .attr('stroke-linejoin', 'round')
       .attr('d', line)
 
     // Animate the line drawing from left to right
@@ -242,11 +301,13 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .attr('cx', (d) => xScale(d.year))
           .attr('cy', (d) => yScale(d.gdp))
           .attr('r', 0)
-          .attr('fill', 'hsl(262, 83%, 58%)')
+          .attr('fill', 'white')
+          .attr('stroke', 'hsl(262, 83%, 58%)')
+          .attr('stroke-width', 2.5)
           .transition()
           .duration(300)
           .delay((d, i) => i * 100)
-          .attr('r', 5)
+          .attr('r', 4)
           .on('end', (d, i) => {
             if (i === data.length - 1) {
               // After all dots are drawn, add annotations
@@ -260,14 +321,16 @@ const ChartDemo = ({ prompt, onComplete }) => {
         }
       })
 
-    // Add title
+    // Add title (recharts style - more subtle)
     svg
       .append('text')
       .attr('x', width / 2)
       .attr('y', -80)
       .attr('text-anchor', 'middle')
-      .style('font-size', '16px')
-      .style('font-weight', 'bold')
+      .style('font-size', '14px')
+      .style('font-weight', '600')
+      .style('fill', 'hsl(240, 10%, 3.9%)')
+      .style('font-family', 'inherit')
       .text('US GDP Over Time')
       .style('opacity', 0)
       .transition()

@@ -110,15 +110,55 @@ When adding new shadcn components:
 
 ### Working with D3 Animations
 
+**Animation & Transitions:**
 - Use `useRef` to access SVG DOM elements
 - Leverage D3 transitions for smooth animations
 - Use `d3.easeLinear` for timeline-based animations
 - Chain transitions with `.transition().delay()` for sequential effects
 - Report progress using transition tweens
-- **Premium colors**: Use `hsl(262, 83%, 58%)` for primary chart elements (matches `--primary`)
-- **Annotations**: Use `foreignObject` for text with HTML/CSS to ensure proper wrapping and styling
-- **Arrow markers**: Define reusable SVG markers for annotations
-- **Responsive sizing**: Account for margins (top: 100, bottom: 120) to accommodate annotations
+
+**Recharts-like Chart Styling:**
+
+The D3 charts should follow shadcn/recharts visual design patterns for consistency:
+
+1. **Grid Lines:**
+   - Use subtle, dashed horizontal grid lines
+   - Color: `hsl(240, 6%, 90%)` with 50% opacity
+   - Pattern: `stroke-dasharray: "3,3"`
+   - Only show horizontal lines, not vertical
+
+2. **Axes:**
+   - Remove tick marks with `tickSize(0)`
+   - Use `tickPadding(12)` for breathing room
+   - Font size: `12px`, weight: `400`
+   - Color: `hsl(240, 4%, 46%)` (muted text)
+   - Domain line: `hsl(240, 6%, 90%)` (subtle border)
+   - Font: `inherit` to use system font stack
+
+3. **Chart Lines:**
+   - Stroke width: `2.5px` (thinner than default)
+   - Use `stroke-linecap: "round"` and `stroke-linejoin: "round"` for smooth corners
+   - Color: `hsl(262, 83%, 58%)` (primary)
+
+4. **Data Points:**
+   - Radius: `4px` (smaller, more refined)
+   - White fill with colored stroke
+   - Stroke width: `2.5px`
+   - Stroke color: `hsl(262, 83%, 58%)` (primary)
+
+5. **Typography:**
+   - Title: 14px, weight 600, color `hsl(240, 10%, 3.9%)`
+   - Axis labels: 12px, weight 500, color `hsl(240, 4%, 46%)`
+   - All text uses `font-family: inherit`
+
+6. **Annotations:**
+   - Use `foreignObject` for text with HTML/CSS to ensure proper wrapping and styling
+   - Arrow markers: Define reusable SVG markers
+   - Colors: Match primary theme colors
+
+**Chart Dimensions:**
+- Account for margins (top: 100, bottom: 120) to accommodate annotations
+- Use `.nice()` on scales for cleaner axis values
 
 ### Design System
 
