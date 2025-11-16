@@ -202,11 +202,12 @@ const ChartDemo = ({ prompt, onComplete }) => {
         annotationGroup
           .append('path')
           .attr('d', arrowPath)
-          .attr('stroke', 'hsl(262, 83%, 58%)')
-          .attr('stroke-width', 2)
+          .attr('stroke', 'hsl(213, 94%, 68%)')
+          .attr('stroke-width', 2.5)
           .attr('fill', 'none')
-          .attr('stroke-dasharray', '4,2')
+          .attr('stroke-dasharray', '5,3')
           .attr('marker-end', 'url(#arrowhead)')
+          .style('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15))')
 
         // Draw card background with premium styling
         annotationGroup
@@ -216,10 +217,10 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .attr('width', cardWidth)
           .attr('height', cardHeight)
           .attr('fill', 'white')
-          .attr('stroke', 'hsl(240, 6%, 90%)')
-          .attr('stroke-width', 1.5)
+          .attr('stroke', 'hsl(213, 94%, 68%)')
+          .attr('stroke-width', 2)
           .attr('rx', 8)
-          .style('filter', 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08))')
+          .style('filter', 'drop-shadow(0 4px 16px rgba(0, 0, 0, 0.12))')
 
         // Use foreignObject for better text wrapping
         const foreignObject = annotationGroup
@@ -269,17 +270,45 @@ const ChartDemo = ({ prompt, onComplete }) => {
     // Create arrow marker definition (better looking)
     const defs = svg.append('defs')
 
+    // Add drop shadow filter for arrows
+    const filter = defs.append('filter')
+      .attr('id', 'arrow-shadow')
+      .attr('x', '-50%')
+      .attr('y', '-50%')
+      .attr('width', '200%')
+      .attr('height', '200%')
+
+    filter.append('feGaussianBlur')
+      .attr('in', 'SourceAlpha')
+      .attr('stdDeviation', 1)
+
+    filter.append('feOffset')
+      .attr('dx', 0)
+      .attr('dy', 1)
+      .attr('result', 'offsetblur')
+
+    filter.append('feComponentTransfer')
+      .append('feFuncA')
+      .attr('type', 'linear')
+      .attr('slope', 0.3)
+
+    const feMerge = filter.append('feMerge')
+    feMerge.append('feMergeNode')
+    feMerge.append('feMergeNode')
+      .attr('in', 'SourceGraphic')
+
     defs
       .append('marker')
       .attr('id', 'arrowhead')
-      .attr('markerWidth', 8)
-      .attr('markerHeight', 8)
-      .attr('refX', 4)
-      .attr('refY', 4)
+      .attr('markerWidth', 10)
+      .attr('markerHeight', 10)
+      .attr('refX', 5)
+      .attr('refY', 5)
       .attr('orient', 'auto')
       .append('path')
-      .attr('d', 'M 0,0 L 8,4 L 0,8 L 2,4 Z')
-      .attr('fill', 'hsl(262, 83%, 58%)')
+      .attr('d', 'M 0,0 L 10,5 L 0,10 L 2,5 Z')
+      .attr('fill', 'hsl(213, 94%, 68%)')
+      .style('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))')
 
     // Add bars (recharts style)
     const bars = svg
