@@ -3,17 +3,28 @@ import * as d3 from 'd3'
 import { Trash2 } from 'lucide-react'
 
 const IntroAnimation = ({ onComplete }) => {
-  const [stage, setStage] = useState('thoughts') // thoughts, shatter, dispose, complete
+  const [stage, setStage] = useState('thoughts') // thoughts, shatter, dispose, fadeout, complete
+  const [visibleBubbles, setVisibleBubbles] = useState(0)
   const chartRef = useRef(null)
   const containerRef = useRef(null)
 
   useEffect(() => {
-    // Stage 1: Show thought bubbles (4 seconds)
+    // Show thought bubbles consecutively
+    const bubble1Timer = setTimeout(() => setVisibleBubbles(1), 500)
+    const bubble2Timer = setTimeout(() => setVisibleBubbles(2), 2000)
+    const bubble3Timer = setTimeout(() => setVisibleBubbles(3), 3500)
+
+    // Stage 1: Show thought bubbles (6 seconds total)
     const thoughtTimer = setTimeout(() => {
       setStage('shatter')
-    }, 5000)
+    }, 6000)
 
-    return () => clearTimeout(thoughtTimer)
+    return () => {
+      clearTimeout(bubble1Timer)
+      clearTimeout(bubble2Timer)
+      clearTimeout(bubble3Timer)
+      clearTimeout(thoughtTimer)
+    }
   }, [])
 
   useEffect(() => {
@@ -136,51 +147,55 @@ const IntroAnimation = ({ onComplete }) => {
 
   const handleDisposeComplete = () => {
     setTimeout(() => {
-      setStage('complete')
-      onComplete()
+      setStage('fadeout')
+      // After fade out completes, call onComplete
+      setTimeout(onComplete, 1000)
     }, 800)
   }
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[600px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100"
+      className={`relative w-full h-[600px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 transition-opacity duration-1000 ${
+        stage === 'fadeout' ? 'opacity-0' : 'opacity-100'
+      }`}
     >
       {/* Thought Bubbles */}
       {stage === 'thoughts' && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="relative">
             {/* Thought Bubble 1 - Top Left */}
-            <div
-              className="absolute -top-32 -left-48 animate-in fade-in zoom-in duration-700"
-              style={{ animationDelay: '500ms' }}
-            >
-              <ThoughtBubble text="Stuck with ugly Google Charts?" position="top-left" />
-            </div>
+            {visibleBubbles >= 1 && (
+              <div className="absolute -top-28 -left-40 animate-in fade-in zoom-in duration-700">
+                <ThoughtBubble text="Stuck with ugly Google Charts?" position="top-left" />
+              </div>
+            )}
 
             {/* Thought Bubble 2 - Top Right */}
-            <div
-              className="absolute -top-40 -right-52 animate-in fade-in zoom-in duration-700"
-              style={{ animationDelay: '1500ms' }}
-            >
-              <ThoughtBubble text="Frustrated with configuration?" position="top-right" />
-            </div>
+            {visibleBubbles >= 2 && (
+              <div className="absolute -top-32 -right-44 animate-in fade-in zoom-in duration-700">
+                <ThoughtBubble text="Frustrated with configuration?" position="top-right" />
+              </div>
+            )}
 
             {/* Thought Bubble 3 - Bottom */}
-            <div
-              className="absolute -bottom-36 left-1/2 -translate-x-1/2 animate-in fade-in zoom-in duration-700"
-              style={{ animationDelay: '2500ms' }}
-            >
-              <ThoughtBubble text="Wish there was a better way?" position="bottom" />
-            </div>
+            {visibleBubbles >= 3 && (
+              <div className="absolute -bottom-28 left-1/2 -translate-x-1/2 animate-in fade-in zoom-in duration-700">
+                <ThoughtBubble text="Wish there was a better way?" position="bottom" />
+              </div>
+            )}
 
             {/* Ugly Google Chart */}
             <div
               ref={chartRef}
-              className="animate-in fade-in zoom-in duration-700"
+              className="animate-in fade-in zoom-in duration-700 shadow-2xl rounded-lg overflow-hidden border-4 border-slate-300"
               style={{ animationDelay: '200ms' }}
             >
-              <UglyGoogleChart />
+              <img
+                src="/ugly_gsheet.png"
+                alt="Ugly Google Sheets Chart"
+                className="w-[500px] h-auto"
+              />
             </div>
           </div>
         </div>
@@ -200,8 +215,8 @@ const ThoughtBubble = ({ text, position }) => {
   return (
     <div className="relative">
       {/* Main thought bubble */}
-      <div className="relative bg-white border-2 border-slate-300 rounded-3xl px-6 py-4 shadow-lg max-w-[220px]">
-        <p className="text-sm font-medium text-slate-700 text-center leading-tight">
+      <div className="relative bg-white border-2 border-slate-300 rounded-3xl px-5 py-3 shadow-lg max-w-[200px]">
+        <p className="text-xs font-medium text-slate-700 text-center leading-tight">
           {text}
         </p>
 
@@ -224,80 +239,6 @@ const ThoughtBubble = ({ text, position }) => {
             <div className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-2 border-slate-300 rounded-full" />
           </>
         )}
-      </div>
-    </div>
-  )
-}
-
-const UglyGoogleChart = () => {
-  return (
-    <div className="bg-white border-2 border-slate-300 rounded-lg p-6 shadow-xl w-[500px]">
-      {/* Ugly Google Chart Title */}
-      <div className="mb-4">
-        <h3 className="text-base font-bold text-black" style={{ fontFamily: 'Arial, sans-serif' }}>
-          Company Sales
-        </h3>
-      </div>
-
-      {/* Chart Area - Ugly styling */}
-      <svg width="450" height="300" className="border border-slate-200">
-        {/* White background */}
-        <rect width="450" height="300" fill="#ffffff" />
-
-        {/* Grid lines - harsh and thick */}
-        {[0, 60, 120, 180, 240, 300].map(y => (
-          <line
-            key={y}
-            x1="40"
-            y1={y}
-            x2="450"
-            y2={y}
-            stroke="#cccccc"
-            strokeWidth="1"
-          />
-        ))}
-
-        {/* Y-axis labels - ugly Arial font */}
-        <text x="5" y="25" fontSize="11" fontFamily="Arial" fill="#666">100</text>
-        <text x="5" y="85" fontSize="11" fontFamily="Arial" fill="#666">80</text>
-        <text x="5" y="145" fontSize="11" fontFamily="Arial" fill="#666">60</text>
-        <text x="5" y="205" fontSize="11" fontFamily="Arial" fill="#666">40</text>
-        <text x="5" y="265" fontSize="11" fontFamily="Arial" fill="#666">20</text>
-
-        {/* X-axis labels */}
-        <text x="80" y="290" fontSize="11" fontFamily="Arial" fill="#666">Q1</text>
-        <text x="180" y="290" fontSize="11" fontFamily="Arial" fill="#666">Q2</text>
-        <text x="280" y="290" fontSize="11" fontFamily="Arial" fill="#666">Q3</text>
-        <text x="380" y="290" fontSize="11" fontFamily="Arial" fill="#666">Q4</text>
-
-        {/* Ugly bars with Google's default colors */}
-        <rect x="60" y="120" width="60" height="120" fill="#3366cc" />
-        <rect x="160" y="90" width="60" height="150" fill="#dc3912" />
-        <rect x="260" y="150" width="60" height="90" fill="#ff9900" />
-        <rect x="360" y="60" width="60" height="180" fill="#109618" />
-
-        {/* Harsh black border */}
-        <rect width="450" height="300" fill="none" stroke="#000000" strokeWidth="1" />
-      </svg>
-
-      {/* Legend - typical Google Charts style */}
-      <div className="mt-4 flex items-center justify-center gap-6 text-xs" style={{ fontFamily: 'Arial, sans-serif' }}>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-[#3366cc]"></div>
-          <span className="text-slate-700">Q1</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-[#dc3912]"></div>
-          <span className="text-slate-700">Q2</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-[#ff9900]"></div>
-          <span className="text-slate-700">Q3</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-[#109618]"></div>
-          <span className="text-slate-700">Q4</span>
-        </div>
       </div>
     </div>
   )
