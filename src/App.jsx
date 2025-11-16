@@ -4,21 +4,33 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import ChartDemo from '@/components/ChartDemo'
+import IntroAnimation from '@/components/IntroAnimation'
 import { Sparkles, Play, RotateCcw, Zap, Code2, LineChart } from 'lucide-react'
 
 function App() {
   const [prompt, setPrompt] = useState('')
   const [isPlaying, setIsPlaying] = useState(false)
+  const [showIntro, setShowIntro] = useState(true)
+  const [showChart, setShowChart] = useState(false)
 
   const handleGenerateDemo = () => {
     if (!prompt.trim()) return
     setIsPlaying(true)
-    // This will trigger the demo playback
+    setShowIntro(true)
+    setShowChart(false)
+    // This will trigger the intro animation, then the demo playback
   }
 
   const handleReset = () => {
     setIsPlaying(false)
     setPrompt('')
+    setShowIntro(true)
+    setShowChart(false)
+  }
+
+  const handleIntroComplete = () => {
+    setShowIntro(false)
+    setShowChart(true)
   }
 
   return (
@@ -87,9 +99,14 @@ function App() {
             <CardHeader className="border-b bg-muted/30">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl">Demo Playback</CardTitle>
+                  <CardTitle className="text-xl">
+                    {showIntro ? 'The Problem' : 'Demo Playback'}
+                  </CardTitle>
                   <CardDescription className="mt-1">
-                    Timeline-driven DOM manipulation in action
+                    {showIntro
+                      ? 'Traditional charting tools leave much to be desired'
+                      : 'Timeline-driven DOM manipulation in action'
+                    }
                   </CardDescription>
                 </div>
                 <Badge variant="success">
@@ -99,7 +116,8 @@ function App() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <ChartDemo prompt={prompt} onComplete={() => {}} />
+              {showIntro && <IntroAnimation onComplete={handleIntroComplete} />}
+              {showChart && <ChartDemo prompt={prompt} onComplete={() => {}} />}
             </CardContent>
           </Card>
         )}
