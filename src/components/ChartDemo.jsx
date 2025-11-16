@@ -206,11 +206,11 @@ const ChartDemo = ({ prompt, onComplete }) => {
         sparkle
           .transition()
           .delay(i * 100)
-          .duration(300)
+          .duration(500)
           .ease(d3.easeBackOut)
           .style('opacity', 1)
           .transition()
-          .duration(200)
+          .duration(400)
           .style('opacity', 0)
 
         // Animate label with scale and fade
