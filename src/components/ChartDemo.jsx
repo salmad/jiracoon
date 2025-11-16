@@ -264,8 +264,16 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .attr('stroke-width', 2.5)
           .attr('fill', 'none')
           .attr('stroke-dasharray', '5,3')
-          .attr('marker-end', 'url(#arrowhead)')
           .style('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15))')
+
+        // Add premium dot at the end of arrow
+        annotationGroup
+          .append('circle')
+          .attr('cx', x)
+          .attr('cy', arrowEndY)
+          .attr('r', 4)
+          .attr('fill', 'hsl(213, 94%, 68%)')
+          .style('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))')
 
         // Draw card background with premium styling
         annotationGroup
@@ -329,48 +337,6 @@ const ChartDemo = ({ prompt, onComplete }) => {
       })
     }
 
-    // Create arrow marker definition (better looking)
-    const defs = svg.append('defs')
-
-    // Add drop shadow filter for arrows
-    const filter = defs.append('filter')
-      .attr('id', 'arrow-shadow')
-      .attr('x', '-50%')
-      .attr('y', '-50%')
-      .attr('width', '200%')
-      .attr('height', '200%')
-
-    filter.append('feGaussianBlur')
-      .attr('in', 'SourceAlpha')
-      .attr('stdDeviation', 1)
-
-    filter.append('feOffset')
-      .attr('dx', 0)
-      .attr('dy', 1)
-      .attr('result', 'offsetblur')
-
-    filter.append('feComponentTransfer')
-      .append('feFuncA')
-      .attr('type', 'linear')
-      .attr('slope', 0.3)
-
-    const feMerge = filter.append('feMerge')
-    feMerge.append('feMergeNode')
-    feMerge.append('feMergeNode')
-      .attr('in', 'SourceGraphic')
-
-    defs
-      .append('marker')
-      .attr('id', 'arrowhead')
-      .attr('markerWidth', 6)
-      .attr('markerHeight', 6)
-      .attr('refX', 3)
-      .attr('refY', 3)
-      .attr('orient', 'auto')
-      .append('path')
-      .attr('d', 'M 0,0 L 6,3 L 0,6 L 1.5,3 Z')
-      .attr('fill', 'hsl(213, 94%, 68%)')
-      .style('filter', 'drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.15))')
 
     // Add bars (recharts style)
     const bars = svg
