@@ -44,10 +44,10 @@ const ChartDemo = ({ prompt, onComplete }) => {
       }
     ]
 
-    // Chart dimensions
-    const margin = { top: 100, right: 30, bottom: 120, left: 60 }
-    const width = 800 - margin.left - margin.right
-    const height = 400 - margin.top - margin.bottom
+    // Chart dimensions - increased margins for annotations
+    const margin = { top: 120, right: 40, bottom: 140, left: 70 }
+    const width = 900 - margin.left - margin.right
+    const height = 450 - margin.top - margin.bottom
 
     // Clear previous chart
     d3.select(svgRef.current).selectAll('*').remove()
@@ -60,11 +60,12 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`)
 
-    // Create scales
+    // Create scales - use scaleBand for bar chart
     const xScale = d3
-      .scaleLinear()
-      .domain(d3.extent(data, (d) => d.year))
+      .scaleBand()
+      .domain(data.map((d) => d.year))
       .range([0, width])
+      .padding(0.3)
 
     const yScale = d3
       .scaleLinear()
@@ -101,7 +102,6 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .attr('transform', `translate(0,${height})`)
       .call(
         d3.axisBottom(xScale)
-          .tickFormat(d3.format('d'))
           .tickSize(0)
           .tickPadding(12)
       )
@@ -168,14 +168,25 @@ const ChartDemo = ({ prompt, onComplete }) => {
         const dataPoint = data.find(d => d.year === annotation.year)
         if (!dataPoint) return
 
-        const x = xScale(dataPoint.year)
+        // Position at center of bar
+        const x = xScale(dataPoint.year) + xScale.bandwidth() / 2
         const y = yScale(dataPoint.gdp)
-        const arrowLength = 60
+        const arrowLength = 50
         const isTop = annotation.position === 'top'
         const arrowEndY = isTop ? y - arrowLength : y + arrowLength
         const cardWidth = 220
         const cardHeight = 70
-        const cardY = isTop ? arrowEndY - cardHeight - 10 : arrowEndY + 10
+
+        // Ensure cards fit within chart bounds
+        let cardY = isTop ? arrowEndY - cardHeight - 10 : arrowEndY + 10
+
+        // Clamp card position to stay within margins
+        if (isTop && cardY < -margin.top + 20) {
+          cardY = -margin.top + 20
+        }
+        if (!isTop && cardY + cardHeight > height + margin.bottom - 20) {
+          cardY = height + margin.bottom - cardHeight - 20
+        }
 
         // Create group for annotation
         const annotationGroup = svg
@@ -240,8 +251,13 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .style('opacity', 1)
           .on('end', () => {
             if (idx === annotations.length - 1) {
+              // Annotations complete - set progress to 100%
               setProgress(100)
               setTimeout(onComplete, 500)
+            } else {
+              // Update progress as annotations appear (70-100%)
+              const annotationProgress = 70 + ((idx + 1) / annotations.length) * 30
+              setProgress(Math.round(annotationProgress))
             }
           })
       })
@@ -261,71 +277,54 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .attr('points', '0 0, 10 5, 0 10')
       .attr('fill', 'hsl(262, 83%, 58%)')
 
-    // Create line generator
-    const line = d3
-      .line()
-      .x((d) => xScale(d.year))
-      .y((d) => yScale(d.gdp))
-      .curve(d3.curveMonotoneX)
+    // Add bars (recharts style)
+    const bars = svg
+      .selectAll('.bar')
+      .data(data)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', (d) => xScale(d.year))
+      .attr('y', height)
+      .attr('width', xScale.bandwidth())
+      .attr('height', 0)
+      .attr('fill', 'hsl(262, 83%, 58%)')
+      .attr('rx', 4)
 
-    // Add the line path (recharts style - slightly thinner)
-    const path = svg
-      .append('path')
-      .datum(data)
-      .attr('fill', 'none')
-      .attr('stroke', 'hsl(262, 83%, 58%)')
-      .attr('stroke-width', 2.5)
-      .attr('stroke-linecap', 'round')
-      .attr('stroke-linejoin', 'round')
-      .attr('d', line)
-
-    // Animate the line drawing from left to right
-    const totalLength = path.node().getTotalLength()
-
-    path
-      .attr('stroke-dasharray', totalLength + ' ' + totalLength)
-      .attr('stroke-dashoffset', totalLength)
+    // Animate bars appearing left to right, growing from bottom to top
+    bars
       .transition()
-      .duration(2000)
-      .delay(800)
-      .ease(d3.easeLinear)
-      .attr('stroke-dashoffset', 0)
-      .on('end', () => {
-        // Add data points after line is drawn
-        svg
-          .selectAll('.dot')
-          .data(data)
-          .enter()
-          .append('circle')
-          .attr('class', 'dot')
-          .attr('cx', (d) => xScale(d.year))
-          .attr('cy', (d) => yScale(d.gdp))
-          .attr('r', 0)
-          .attr('fill', 'white')
-          .attr('stroke', 'hsl(262, 83%, 58%)')
-          .attr('stroke-width', 2.5)
-          .transition()
-          .duration(300)
-          .delay((d, i) => i * 100)
-          .attr('r', 4)
-          .on('end', (d, i) => {
-            if (i === data.length - 1) {
-              // After all dots are drawn, add annotations
-              addAnnotations()
-            }
-          })
-      })
-      .tween('progress', function () {
-        return function (t) {
-          setProgress(Math.round(t * 100))
+      .duration(400)
+      .delay((d, i) => 800 + i * 150)
+      .ease(d3.easeCubicOut)
+      .attr('y', (d) => yScale(d.gdp))
+      .attr('height', (d) => height - yScale(d.gdp))
+      .on('end', (d, i) => {
+        if (i === data.length - 1) {
+          // After all bars are drawn, add annotations
+          setTimeout(() => addAnnotations(), 200)
         }
       })
+
+    // Track progress based on number of bars completed
+    let completedBars = 0
+    bars.each(function(d, i) {
+      d3.select(this)
+        .transition()
+        .duration(400)
+        .delay(800 + i * 150)
+        .on('end', function() {
+          completedBars++
+          const progress = Math.round((completedBars / data.length) * 70) // 70% for bars
+          setProgress(progress)
+        })
+    })
 
     // Add title (recharts style - more subtle)
     svg
       .append('text')
       .attr('x', width / 2)
-      .attr('y', -80)
+      .attr('y', -90)
       .attr('text-anchor', 'middle')
       .style('font-size', '14px')
       .style('font-weight', '600')
