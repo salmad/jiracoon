@@ -22,8 +22,30 @@ const ChartDemo = ({ prompt, onComplete }) => {
       { year: 2023, gdp: 27.0 },
     ]
 
+    // Annotations for specific events
+    const annotations = [
+      {
+        year: 2020,
+        text: 'COVID-19 pandemic impact',
+        description: 'Global pandemic led to economic slowdown',
+        position: 'top'
+      },
+      {
+        year: 2021,
+        text: 'Economic recovery begins',
+        description: 'Stimulus packages and reopening drive growth',
+        position: 'bottom'
+      },
+      {
+        year: 2023,
+        text: 'Continued expansion',
+        description: 'Strong consumer spending and employment',
+        position: 'top'
+      }
+    ]
+
     // Chart dimensions
-    const margin = { top: 20, right: 30, bottom: 40, left: 60 }
+    const margin = { top: 100, right: 30, bottom: 120, left: 60 }
     const width = 800 - margin.left - margin.right
     const height = 400 - margin.top - margin.bottom
 
@@ -83,6 +105,101 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .delay(300)
       .style('opacity', 1)
 
+    // Function to add annotations
+    const addAnnotations = () => {
+      annotations.forEach((annotation, idx) => {
+        const dataPoint = data.find(d => d.year === annotation.year)
+        if (!dataPoint) return
+
+        const x = xScale(dataPoint.year)
+        const y = yScale(dataPoint.gdp)
+        const arrowLength = 60
+        const isTop = annotation.position === 'top'
+        const arrowEndY = isTop ? y - arrowLength : y + arrowLength
+        const cardWidth = 200
+        const cardHeight = 60
+        const cardY = isTop ? arrowEndY - cardHeight - 10 : arrowEndY + 10
+
+        // Create group for annotation
+        const annotationGroup = svg
+          .append('g')
+          .attr('class', 'annotation')
+          .style('opacity', 0)
+
+        // Draw arrow line
+        annotationGroup
+          .append('line')
+          .attr('x1', x)
+          .attr('y1', y - 8)
+          .attr('x2', x)
+          .attr('y2', arrowEndY)
+          .attr('stroke', 'hsl(217.2, 91.2%, 59.8%)')
+          .attr('stroke-width', 2)
+          .attr('marker-end', 'url(#arrowhead)')
+
+        // Draw card background
+        annotationGroup
+          .append('rect')
+          .attr('x', x - cardWidth / 2)
+          .attr('y', cardY)
+          .attr('width', cardWidth)
+          .attr('height', cardHeight)
+          .attr('fill', 'white')
+          .attr('stroke', 'hsl(217.2, 91.2%, 59.8%)')
+          .attr('stroke-width', 2)
+          .attr('rx', 6)
+          .style('filter', 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))')
+
+        // Add annotation title
+        annotationGroup
+          .append('text')
+          .attr('x', x)
+          .attr('y', cardY + 22)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '13px')
+          .style('font-weight', '600')
+          .style('fill', 'hsl(222.2, 47.4%, 11.2%)')
+          .text(annotation.text)
+
+        // Add annotation description
+        annotationGroup
+          .append('text')
+          .attr('x', x)
+          .attr('y', cardY + 42)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '11px')
+          .style('fill', 'hsl(215.4, 16.3%, 46.9%)')
+          .text(annotation.description)
+
+        // Animate annotation appearance
+        annotationGroup
+          .transition()
+          .duration(500)
+          .delay(idx * 400)
+          .style('opacity', 1)
+          .on('end', () => {
+            if (idx === annotations.length - 1) {
+              setProgress(100)
+              setTimeout(onComplete, 500)
+            }
+          })
+      })
+    }
+
+    // Create arrow marker definition
+    svg
+      .append('defs')
+      .append('marker')
+      .attr('id', 'arrowhead')
+      .attr('markerWidth', 10)
+      .attr('markerHeight', 10)
+      .attr('refX', 5)
+      .attr('refY', 5)
+      .attr('orient', 'auto')
+      .append('polygon')
+      .attr('points', '0 0, 10 5, 0 10')
+      .attr('fill', 'hsl(217.2, 91.2%, 59.8%)')
+
     // Create line generator
     const line = d3
       .line()
@@ -128,8 +245,8 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .attr('r', 5)
           .on('end', (d, i) => {
             if (i === data.length - 1) {
-              setProgress(100)
-              setTimeout(onComplete, 500)
+              // After all dots are drawn, add annotations
+              addAnnotations()
             }
           })
       })
@@ -143,7 +260,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
     svg
       .append('text')
       .attr('x', width / 2)
-      .attr('y', 0 - margin.top / 2)
+      .attr('y', -80)
       .attr('text-anchor', 'middle')
       .style('font-size', '16px')
       .style('font-weight', 'bold')
