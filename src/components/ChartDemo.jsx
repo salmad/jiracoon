@@ -194,15 +194,18 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .attr('class', 'annotation')
           .style('opacity', 0)
 
-        // Draw arrow line with gradient
+        // Draw arrow line with curve (more elegant)
+        const arrowPath = isTop
+          ? `M ${x},${y - 8} Q ${x},${(y - 8 + arrowEndY) / 2} ${x},${arrowEndY}`
+          : `M ${x},${y + 8} Q ${x},${(y + 8 + arrowEndY) / 2} ${x},${arrowEndY}`
+
         annotationGroup
-          .append('line')
-          .attr('x1', x)
-          .attr('y1', y - 8)
-          .attr('x2', x)
-          .attr('y2', arrowEndY)
+          .append('path')
+          .attr('d', arrowPath)
           .attr('stroke', 'hsl(262, 83%, 58%)')
           .attr('stroke-width', 2)
+          .attr('fill', 'none')
+          .attr('stroke-dasharray', '4,2')
           .attr('marker-end', 'url(#arrowhead)')
 
         // Draw card background with premium styling
@@ -263,18 +266,19 @@ const ChartDemo = ({ prompt, onComplete }) => {
       })
     }
 
-    // Create arrow marker definition
-    svg
-      .append('defs')
+    // Create arrow marker definition (better looking)
+    const defs = svg.append('defs')
+
+    defs
       .append('marker')
       .attr('id', 'arrowhead')
-      .attr('markerWidth', 10)
-      .attr('markerHeight', 10)
-      .attr('refX', 5)
-      .attr('refY', 5)
+      .attr('markerWidth', 8)
+      .attr('markerHeight', 8)
+      .attr('refX', 4)
+      .attr('refY', 4)
       .attr('orient', 'auto')
-      .append('polygon')
-      .attr('points', '0 0, 10 5, 0 10')
+      .append('path')
+      .attr('d', 'M 0,0 L 8,4 L 0,8 L 2,4 Z')
       .attr('fill', 'hsl(262, 83%, 58%)')
 
     // Add bars (recharts style)
@@ -291,12 +295,12 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .attr('fill', 'hsl(262, 83%, 58%)')
       .attr('rx', 4)
 
-    // Animate bars appearing left to right, growing from bottom to top
+    // Animate bars appearing left to right, growing from bottom to top with bounce
     bars
       .transition()
-      .duration(400)
+      .duration(600)
       .delay((d, i) => 800 + i * 150)
-      .ease(d3.easeCubicOut)
+      .ease(d3.easeBackOut.overshoot(1.2))
       .attr('y', (d) => yScale(d.gdp))
       .attr('height', (d) => height - yScale(d.gdp))
       .on('end', (d, i) => {
@@ -311,7 +315,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
     bars.each(function(d, i) {
       d3.select(this)
         .transition()
-        .duration(400)
+        .duration(600)
         .delay(800 + i * 150)
         .on('end', function() {
           completedBars++
