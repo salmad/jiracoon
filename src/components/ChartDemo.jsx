@@ -244,13 +244,22 @@ const ChartDemo = ({ prompt, onComplete }) => {
 
         // Ensure cards fit within chart bounds
         let cardY = isTop ? arrowEndY - cardHeight - 10 : arrowEndY + 10
+        let cardX = x - cardWidth / 2
 
-        // Clamp card position to stay within margins
+        // Clamp card position to stay within margins (vertical)
         if (isTop && cardY < -margin.top + 20) {
           cardY = -margin.top + 20
         }
         if (!isTop && cardY + cardHeight > height + margin.bottom - 20) {
           cardY = height + margin.bottom - cardHeight - 20
+        }
+
+        // Clamp card position to stay within margins (horizontal)
+        if (cardX < 10) {
+          cardX = 10
+        }
+        if (cardX + cardWidth > width - 10) {
+          cardX = width - cardWidth - 10
         }
 
         // Create group for annotation
@@ -285,7 +294,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
         // Draw card background with premium styling
         annotationGroup
           .append('rect')
-          .attr('x', x - cardWidth / 2)
+          .attr('x', cardX)
           .attr('y', cardY)
           .attr('width', cardWidth)
           .attr('height', cardHeight)
@@ -298,7 +307,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
         // Use foreignObject for better text wrapping
         const foreignObject = annotationGroup
           .append('foreignObject')
-          .attr('x', x - cardWidth / 2)
+          .attr('x', cardX)
           .attr('y', cardY)
           .attr('width', cardWidth)
           .attr('height', cardHeight)
