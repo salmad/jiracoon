@@ -316,10 +316,24 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .attr('class', 'annotation')
           .style('opacity', 0)
 
-        // Draw arrow line with curve (more elegant)
+        // Add connector dot at top of bar
+        annotationGroup
+          .append('circle')
+          .attr('cx', x)
+          .attr('cy', y)
+          .attr('r', 3)
+          .attr('fill', 'hsl(213, 94%, 68%)')
+          .attr('stroke', 'white')
+          .attr('stroke-width', 1.5)
+          .style('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15))')
+
+        // Draw arrow line with curve, avoiding label area
+        // Labels are positioned at y - 12 with height ~20px, so they occupy y - 32 to y - 12
+        const labelGap = 35 // Gap to avoid label overlap
+        const arrowStartY = isTop ? y - labelGap : y + 8
         const arrowPath = isTop
-          ? `M ${x},${y - 8} Q ${x},${(y - 8 + arrowEndY) / 2} ${x},${arrowEndY}`
-          : `M ${x},${y + 8} Q ${x},${(y + 8 + arrowEndY) / 2} ${x},${arrowEndY}`
+          ? `M ${x},${arrowStartY} Q ${x},${(arrowStartY + arrowEndY) / 2} ${x},${arrowEndY}`
+          : `M ${x},${arrowStartY} Q ${x},${(arrowStartY + arrowEndY) / 2} ${x},${arrowEndY}`
 
         annotationGroup
           .append('path')
