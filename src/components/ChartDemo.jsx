@@ -105,7 +105,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .delay(300)
       .style('opacity', 1)
 
-    // Function to add annotations
+    // Function to add annotations with proper text wrapping
     const addAnnotations = () => {
       annotations.forEach((annotation, idx) => {
         const dataPoint = data.find(d => d.year === annotation.year)
@@ -116,8 +116,8 @@ const ChartDemo = ({ prompt, onComplete }) => {
         const arrowLength = 60
         const isTop = annotation.position === 'top'
         const arrowEndY = isTop ? y - arrowLength : y + arrowLength
-        const cardWidth = 200
-        const cardHeight = 60
+        const cardWidth = 220
+        const cardHeight = 70
         const cardY = isTop ? arrowEndY - cardHeight - 10 : arrowEndY + 10
 
         // Create group for annotation
@@ -126,18 +126,18 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .attr('class', 'annotation')
           .style('opacity', 0)
 
-        // Draw arrow line
+        // Draw arrow line with gradient
         annotationGroup
           .append('line')
           .attr('x1', x)
           .attr('y1', y - 8)
           .attr('x2', x)
           .attr('y2', arrowEndY)
-          .attr('stroke', 'hsl(217.2, 91.2%, 59.8%)')
+          .attr('stroke', 'hsl(262, 83%, 58%)')
           .attr('stroke-width', 2)
           .attr('marker-end', 'url(#arrowhead)')
 
-        // Draw card background
+        // Draw card background with premium styling
         annotationGroup
           .append('rect')
           .attr('x', x - cardWidth / 2)
@@ -145,31 +145,35 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .attr('width', cardWidth)
           .attr('height', cardHeight)
           .attr('fill', 'white')
-          .attr('stroke', 'hsl(217.2, 91.2%, 59.8%)')
-          .attr('stroke-width', 2)
-          .attr('rx', 6)
-          .style('filter', 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))')
+          .attr('stroke', 'hsl(240, 6%, 90%)')
+          .attr('stroke-width', 1.5)
+          .attr('rx', 8)
+          .style('filter', 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08))')
 
-        // Add annotation title
-        annotationGroup
-          .append('text')
-          .attr('x', x)
-          .attr('y', cardY + 22)
-          .attr('text-anchor', 'middle')
-          .style('font-size', '13px')
-          .style('font-weight', '600')
-          .style('fill', 'hsl(222.2, 47.4%, 11.2%)')
-          .text(annotation.text)
+        // Use foreignObject for better text wrapping
+        const foreignObject = annotationGroup
+          .append('foreignObject')
+          .attr('x', x - cardWidth / 2)
+          .attr('y', cardY)
+          .attr('width', cardWidth)
+          .attr('height', cardHeight)
 
-        // Add annotation description
-        annotationGroup
-          .append('text')
-          .attr('x', x)
-          .attr('y', cardY + 42)
-          .attr('text-anchor', 'middle')
-          .style('font-size', '11px')
-          .style('fill', 'hsl(215.4, 16.3%, 46.9%)')
-          .text(annotation.description)
+        foreignObject
+          .append('xhtml:div')
+          .style('width', '100%')
+          .style('height', '100%')
+          .style('padding', '12px')
+          .style('display', 'flex')
+          .style('flex-direction', 'column')
+          .style('justify-content', 'center')
+          .html(`
+            <div style="font-size: 13px; font-weight: 600; color: hsl(240, 10%, 3.9%); margin-bottom: 4px; line-height: 1.3;">
+              ${annotation.text}
+            </div>
+            <div style="font-size: 11px; color: hsl(240, 4%, 46%); line-height: 1.4;">
+              ${annotation.description}
+            </div>
+          `)
 
         // Animate annotation appearance
         annotationGroup
@@ -198,7 +202,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .attr('orient', 'auto')
       .append('polygon')
       .attr('points', '0 0, 10 5, 0 10')
-      .attr('fill', 'hsl(217.2, 91.2%, 59.8%)')
+      .attr('fill', 'hsl(262, 83%, 58%)')
 
     // Create line generator
     const line = d3
@@ -212,7 +216,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
       .append('path')
       .datum(data)
       .attr('fill', 'none')
-      .attr('stroke', 'hsl(222.2, 47.4%, 11.2%)')
+      .attr('stroke', 'hsl(262, 83%, 58%)')
       .attr('stroke-width', 3)
       .attr('d', line)
 
@@ -238,7 +242,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .attr('cx', (d) => xScale(d.year))
           .attr('cy', (d) => yScale(d.gdp))
           .attr('r', 0)
-          .attr('fill', 'hsl(222.2, 47.4%, 11.2%)')
+          .attr('fill', 'hsl(262, 83%, 58%)')
           .transition()
           .duration(300)
           .delay((d, i) => i * 100)
@@ -275,10 +279,21 @@ const ChartDemo = ({ prompt, onComplete }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>Animation Progress: {progress}%</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-muted-foreground">
+            Animation Progress
+          </span>
+          <div className="w-48 h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="text-sm font-semibold text-primary">{progress}%</span>
+        </div>
       </div>
-      <div className="flex justify-center bg-white dark:bg-slate-950 rounded-lg p-6">
+      <div className="flex justify-center bg-gradient-to-br from-white to-muted/30 dark:from-slate-950 dark:to-slate-900 rounded-xl p-8 shadow-premium">
         <svg ref={svgRef}></svg>
       </div>
     </div>

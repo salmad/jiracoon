@@ -85,7 +85,8 @@ src/
 │   └── ui/                     # shadcn UI components
 │       ├── button.jsx
 │       ├── input.jsx
-│       └── card.jsx
+│       ├── card.jsx
+│       └── badge.jsx
 └── lib/
     └── utils.js                # Utility functions (cn for class merging)
 ```
@@ -114,6 +115,46 @@ When adding new shadcn components:
 - Use `d3.easeLinear` for timeline-based animations
 - Chain transitions with `.transition().delay()` for sequential effects
 - Report progress using transition tweens
+- **Premium colors**: Use `hsl(262, 83%, 58%)` for primary chart elements (matches `--primary`)
+- **Annotations**: Use `foreignObject` for text with HTML/CSS to ensure proper wrapping and styling
+- **Arrow markers**: Define reusable SVG markers for annotations
+- **Responsive sizing**: Account for margins (top: 100, bottom: 120) to accommodate annotations
+
+### Design System
+
+**Premium Design Philosophy**
+
+The UI follows a premium design system inspired by Linear, Intercom, Revolut, and Framer. The key principles are:
+
+1. **Clean Minimalism**: Focused layouts with ample whitespace
+2. **Premium Color Palette**: Purple/violet primary (Linear-inspired), vibrant blue accents (Intercom-inspired)
+3. **Smooth Animations**: Timeline-driven transitions that feel polished
+4. **Excellent Typography**: Proper font sizing, weights, and line heights
+5. **Subtle Depth**: Premium shadows and borders, not heavy drop shadows
+
+**Color Variables** (defined in `src/index.css`):
+
+- `--primary: 262 83% 58%` - Purple/violet for primary actions and branding
+- `--accent: 213 94% 68%` - Vibrant blue for accents and highlights
+- `--muted: 240 5% 96%` - Subtle gray for backgrounds
+- `--border: 240 6% 90%` - Soft borders
+- Chart colors: `--chart-1` through `--chart-4` for data visualization
+
+**Premium Utility Classes**:
+
+- `.gradient-primary` - Purple to blue gradient
+- `.gradient-subtle` - Subtle background gradient
+- `.shadow-premium` - Soft, layered shadow
+- `.shadow-premium-lg` - Larger premium shadow for cards
+- `.glass` / `.glass-dark` - Glassmorphism effects
+
+**Component Styling Guidelines**:
+
+- Cards: Use `shadow-premium-lg` and `border-2` for elevated look
+- Buttons: Primary actions use gradient backgrounds
+- Inputs: Larger touch targets (h-12) for better UX
+- Icons: Use Lucide React icons with consistent sizing (w-4 h-4 for inline, w-6 h-6 for headers)
+- Badges: Use for status indicators with semantic colors
 
 ### Styling Conventions
 
@@ -121,6 +162,7 @@ When adding new shadcn components:
 - Leverage CSS variables defined in `index.css` for theming
 - Use `cn()` utility to merge conditional classes
 - Follow dark mode support pattern with `dark:` prefix
+- Apply premium utilities (`.shadow-premium`, `.gradient-primary`) consistently
 
 ## Important Notes from claude.md
 
