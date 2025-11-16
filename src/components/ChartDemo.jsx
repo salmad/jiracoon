@@ -1,27 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import * as d3 from 'd3'
-import Confetti from 'react-confetti'
+import confetti from 'canvas-confetti'
 
 const ChartDemo = ({ prompt, onComplete }) => {
   const svgRef = useRef(null)
-  const containerRef = useRef(null)
   const [progress, setProgress] = useState(0)
-  const [showConfetti, setShowConfetti] = useState(false)
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-
-  // Track container dimensions for confetti
-  useEffect(() => {
-    if (!containerRef.current) return
-
-    const updateDimensions = () => {
-      const rect = containerRef.current.getBoundingClientRect()
-      setDimensions({ width: rect.width, height: rect.height })
-    }
-
-    updateDimensions()
-    window.addEventListener('resize', updateDimensions)
-    return () => window.removeEventListener('resize', updateDimensions)
-  }, [])
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -347,13 +330,43 @@ const ChartDemo = ({ prompt, onComplete }) => {
             if (idx === annotations.length - 1) {
               // Annotations complete - set progress to 100%
               setProgress(100)
-              // Trigger confetti after a brief delay
+              // Trigger premium confetti explosion after a brief delay
               setTimeout(() => {
-                setShowConfetti(true)
-                setTimeout(() => {
-                  setShowConfetti(false)
-                  onComplete()
-                }, 3000)
+                // Create a stunning confetti explosion from the center of the chart
+                const duration = 3000
+                const animationEnd = Date.now() + duration
+                const defaults = {
+                  startVelocity: 30,
+                  spread: 360,
+                  ticks: 60,
+                  zIndex: 0,
+                  colors: [
+                    '#8b5cf6', // Primary purple
+                    '#60a5fa', // Accent blue
+                    '#34d399', // Green
+                    '#fbbf24', // Orange
+                    '#f87171', // Red
+                  ]
+                }
+
+                const interval = setInterval(() => {
+                  const timeLeft = animationEnd - Date.now()
+
+                  if (timeLeft <= 0) {
+                    clearInterval(interval)
+                    onComplete()
+                    return
+                  }
+
+                  const particleCount = 50 * (timeLeft / duration)
+
+                  // Fire confetti from center of chart area
+                  confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: 0.5, y: 0.5 }
+                  })
+                }, 250)
               }, 300)
             } else {
               // Update progress as annotations appear (70-100%)
@@ -435,29 +448,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
   }, [prompt, onComplete])
 
   return (
-    <div className="space-y-4" ref={containerRef}>
-      {showConfetti && (
-        <Confetti
-          width={dimensions.width}
-          height={dimensions.height}
-          numberOfPieces={200}
-          recycle={false}
-          colors={[
-            '#8b5cf6', // Primary purple
-            '#60a5fa', // Accent blue
-            '#34d399', // Green
-            '#fbbf24', // Orange
-            '#f87171', // Red
-          ]}
-          gravity={0.25}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            zIndex: 10,
-          }}
-        />
-      )}
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-muted-foreground">
