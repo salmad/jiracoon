@@ -66,10 +66,18 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "wiggle": {
+          '0%': { transform: 'translateX(0) rotate(0deg)' },
+          '25%': { transform: 'translateX(-10px) rotate(-2deg)' },
+          '50%': { transform: 'translateX(10px) rotate(2deg)' },
+          '75%': { transform: 'translateX(-5px) rotate(-1deg)' },
+          '100%': { transform: 'translateX(0) rotate(0deg)' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "wiggle": "wiggle 0.4s ease-in-out",
       },
     },
   },

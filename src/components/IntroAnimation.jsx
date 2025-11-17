@@ -174,34 +174,53 @@ const IntroAnimation = ({ onComplete }) => {
       {/* Chart and Thought Bubbles - visible during thoughts and shatter */}
       {(stage === 'thoughts' || stage === 'shatter') && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative">
-            {/* Thought Bubble 1 - Top Left - only during thoughts */}
+          <div className="relative flex flex-col items-center">
+            {/* Frustrated Person - Top */}
             {stage === 'thoughts' && visibleBubbles >= 1 && (
-              <div className="absolute -top-28 -left-40 animate-in fade-in zoom-in duration-700">
-                <ThoughtBubble text="Stuck with ugly Google Charts?" position="top-left" />
+              <div className="absolute -top-48 left-1/2 -translate-x-1/2 animate-in fade-in zoom-in duration-700 flex flex-col items-center gap-2">
+                <div className="text-6xl animate-bounce">😫</div>
+                <div className="text-xs text-slate-600 font-medium">*pulling hair out*</div>
               </div>
             )}
 
-            {/* Thought Bubble 2 - Top Right - only during thoughts */}
+            {/* Main Question - Large Font */}
             {stage === 'thoughts' && visibleBubbles >= 2 && (
-              <div className="absolute -top-32 -right-44 animate-in fade-in zoom-in duration-700">
-                <ThoughtBubble text="Frustrated with configuration?" position="top-right" />
+              <div className="absolute -top-24 left-1/2 -translate-x-1/2 animate-in fade-in slide-in-from-top duration-700" style={{ animationDelay: '800ms' }}>
+                <h3 className="text-4xl font-bold text-slate-800 text-center whitespace-nowrap">
+                  Are you still using <span className="text-red-600">THIS?</span>
+                </h3>
               </div>
             )}
 
-            {/* Thought Bubble 3 - Bottom - only during thoughts */}
+            {/* Frustrated person on sides */}
             {stage === 'thoughts' && visibleBubbles >= 3 && (
-              <div className="absolute -bottom-28 left-1/2 -translate-x-1/2 animate-in fade-in zoom-in duration-700">
-                <ThoughtBubble text="Wish there was a better way?" position="bottom" />
-              </div>
+              <>
+                <div className="absolute top-1/2 -left-32 -translate-y-1/2 animate-in fade-in zoom-in duration-700" style={{ animationDelay: '1200ms' }}>
+                  <div className="text-5xl transform -rotate-12">🤦</div>
+                </div>
+                <div className="absolute top-1/2 -right-32 -translate-y-1/2 animate-in fade-in zoom-in duration-700" style={{ animationDelay: '1400ms' }}>
+                  <div className="text-5xl transform rotate-12">🤦‍♂️</div>
+                </div>
+              </>
             )}
 
             {/* Ugly Google Chart - visible during thoughts and shatter */}
             <div
               ref={chartRef}
-              className="animate-in fade-in zoom-in duration-700 shadow-2xl rounded-lg overflow-hidden border-4 border-slate-300"
+              className="animate-in fade-in zoom-in duration-700 shadow-2xl rounded-lg overflow-hidden border-4 border-red-400 relative"
               style={{ animationDelay: '200ms' }}
             >
+              {/* Warning stickers on chart */}
+              {stage === 'thoughts' && visibleBubbles >= 3 && (
+                <>
+                  <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded rotate-12 animate-pulse z-10">
+                    OUTDATED
+                  </div>
+                  <div className="absolute bottom-2 left-2 bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded -rotate-6 animate-pulse z-10">
+                    HARD TO USE
+                  </div>
+                </>
+              )}
               <img
                 src="/ugly_gsheet.png"
                 alt="Ugly Google Sheets Chart"
@@ -225,39 +244,6 @@ const IntroAnimation = ({ onComplete }) => {
           <SolutionAnimation onComplete={handleSolutionComplete} />
         </div>
       )}
-    </div>
-  )
-}
-
-const ThoughtBubble = ({ text, position }) => {
-  return (
-    <div className="relative">
-      {/* Main thought bubble */}
-      <div className="relative bg-white border-2 border-slate-300 rounded-3xl px-5 py-3 shadow-lg max-w-[200px]">
-        <p className="text-xs font-medium text-slate-700 text-center leading-tight">
-          {text}
-        </p>
-
-        {/* Thought bubble tail circles */}
-        {position === 'top-left' && (
-          <>
-            <div className="absolute bottom-[-20px] left-8 w-4 h-4 bg-white border-2 border-slate-300 rounded-full" />
-            <div className="absolute bottom-[-30px] left-12 w-2.5 h-2.5 bg-white border-2 border-slate-300 rounded-full" />
-          </>
-        )}
-        {position === 'top-right' && (
-          <>
-            <div className="absolute bottom-[-20px] right-8 w-4 h-4 bg-white border-2 border-slate-300 rounded-full" />
-            <div className="absolute bottom-[-30px] right-12 w-2.5 h-2.5 bg-white border-2 border-slate-300 rounded-full" />
-          </>
-        )}
-        {position === 'bottom' && (
-          <>
-            <div className="absolute top-[-20px] left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-2 border-slate-300 rounded-full" />
-            <div className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-2 border-slate-300 rounded-full" />
-          </>
-        )}
-      </div>
     </div>
   )
 }
@@ -344,18 +330,25 @@ const TrashBinAnimation = ({ onComplete }) => {
 
 const SolutionAnimation = ({ onComplete }) => {
   const [showHeading, setShowHeading] = useState(false)
-  const [chatPosition, setChatPosition] = useState('right') // right, center, slide-out
+  const [chatPosition, setChatPosition] = useState('right') // right, racing, braking, center, button-press, loading, slide-out
   const [typedText, setTypedText] = useState('')
+  const [buttonState, setButtonState] = useState('idle') // idle, pressing, loading
   const fullText = "can you plot US GDP by year and highlight covid period"
 
   useEffect(() => {
     // Step 1: Show heading (1s)
     setTimeout(() => setShowHeading(true), 300)
 
-    // Step 2: Slide chat in from right (1.5s)
-    setTimeout(() => setChatPosition('center'), 1500)
+    // Step 2: Racing car enters from right (fast)
+    setTimeout(() => setChatPosition('racing'), 1500)
 
-    // Step 3: Start typing after chat is centered (2.5s)
+    // Step 3: Braking/wiggling effect
+    setTimeout(() => setChatPosition('braking'), 2200)
+
+    // Step 4: Finally settle at center
+    setTimeout(() => setChatPosition('center'), 2600)
+
+    // Step 5: Start typing after chat settles (3s)
     setTimeout(() => {
       let currentIndex = 0
       const typingInterval = setInterval(() => {
@@ -364,15 +357,23 @@ const SolutionAnimation = ({ onComplete }) => {
           currentIndex++
         } else {
           clearInterval(typingInterval)
-          // Step 4: Slide chat out after typing is done (wait 1s)
+          // Step 6: Animate button press after typing (wait 500ms)
           setTimeout(() => {
-            setChatPosition('slide-out')
-            // Complete after slide out animation (1s)
-            setTimeout(onComplete, 1000)
-          }, 1000)
+            setButtonState('pressing')
+            // Step 7: Show loading state
+            setTimeout(() => {
+              setButtonState('loading')
+              // Step 8: Slide out after loading (1.5s)
+              setTimeout(() => {
+                setChatPosition('slide-out')
+                // Complete after slide out animation (1s)
+                setTimeout(onComplete, 1000)
+              }, 1500)
+            }, 300)
+          }, 500)
         }
       }, 50) // 50ms per character for typing effect
-    }, 2500)
+    }, 3000)
   }, [onComplete, fullText])
 
   return (
@@ -390,12 +391,18 @@ const SolutionAnimation = ({ onComplete }) => {
 
       {/* Chat Console */}
       <div
-        className={`transition-all duration-1000 ease-out ${
+        className={`${
           chatPosition === 'right'
-            ? 'translate-x-[800px] opacity-0'
+            ? 'translate-x-[1000px] opacity-0'
+            : chatPosition === 'racing'
+            ? 'translate-x-0 opacity-100 transition-all duration-700 ease-in'
+            : chatPosition === 'braking'
+            ? 'translate-x-0 opacity-100 animate-wiggle'
             : chatPosition === 'center'
-            ? 'translate-x-0 opacity-100'
-            : 'translate-x-[800px] opacity-0'
+            ? 'translate-x-0 opacity-100 transition-all duration-300 ease-out'
+            : chatPosition === 'slide-out'
+            ? 'translate-x-[1000px] opacity-0 transition-all duration-1000 ease-in'
+            : 'translate-x-0 opacity-100'
         }`}
       >
         <div className="bg-white rounded-2xl shadow-premium-lg border-2 border-primary/20 p-6 w-[600px]">
@@ -426,8 +433,20 @@ const SolutionAnimation = ({ onComplete }) => {
 
           {/* Send Button */}
           <div className="mt-4 flex justify-end">
-            <button className="px-4 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all">
-              Generate Chart
+            <button
+              className={`px-4 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-medium shadow-lg transition-all flex items-center gap-2 ${
+                buttonState === 'pressing'
+                  ? 'scale-95 shadow-md'
+                  : buttonState === 'loading'
+                  ? 'scale-100 shadow-xl cursor-wait'
+                  : 'scale-100'
+              }`}
+              disabled={buttonState !== 'idle'}
+            >
+              {buttonState === 'loading' && (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              )}
+              {buttonState === 'loading' ? 'Generating...' : 'Generate Chart'}
             </button>
           </div>
         </div>
