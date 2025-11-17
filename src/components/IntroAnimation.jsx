@@ -5,8 +5,6 @@ import { Trash2, Sparkles } from 'lucide-react'
 const IntroAnimation = ({ onComplete }) => {
   const [stage, setStage] = useState('pain') // pain, crumple, dispose, solution, complete
   const [painStep, setPainStep] = useState(0) // 0-3 for each pain point step
-  const [timeWasted, setTimeWasted] = useState(0)
-  const [clickCount, setClickCount] = useState(0)
   const [isCrumpling, setIsCrumpling] = useState(false)
   const chartRef = useRef(null)
   const containerRef = useRef(null)
@@ -16,10 +14,10 @@ const IntroAnimation = ({ onComplete }) => {
     // Step 0: Initial state (0.5s)
     const step0Timer = setTimeout(() => setPainStep(1), 500)
 
-    // Step 1: Fight with the UI (2s)
+    // Step 1: Navigate menus (2s)
     const step1Timer = setTimeout(() => setPainStep(2), 2500)
 
-    // Step 2: Manually format (2s)
+    // Step 2: Format everything (2s)
     const step2Timer = setTimeout(() => setPainStep(3), 4500)
 
     // Step 3: Still ugly finale (2.5s) then crumple
@@ -40,26 +38,6 @@ const IntroAnimation = ({ onComplete }) => {
       clearTimeout(step3Timer)
     }
   }, [])
-
-  // Time wasted counter
-  useEffect(() => {
-    if (stage === 'pain') {
-      const interval = setInterval(() => {
-        setTimeWasted(prev => Math.min(prev + 1, 163)) // 2h 43min = 163 minutes
-      }, 50) // Speeds up the counter
-      return () => clearInterval(interval)
-    }
-  }, [stage])
-
-  // Click counter
-  useEffect(() => {
-    if (stage === 'pain' && (painStep === 1 || painStep === 2)) {
-      const interval = setInterval(() => {
-        setClickCount(prev => Math.min(prev + 1, 47))
-      }, 80)
-      return () => clearInterval(interval)
-    }
-  }, [stage, painStep])
 
 
   const handleDisposeComplete = () => {
@@ -83,25 +61,18 @@ const IntroAnimation = ({ onComplete }) => {
         <div className="absolute inset-0 flex items-center justify-center px-8">
           {/* Split Screen Container */}
           <div className={`relative w-full max-w-6xl ${isCrumpling ? 'animate-crumple' : ''}`}>
-            {/* Time Wasted Counter - Top Center */}
-            <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-20">
-              <div className="bg-red-500 text-white px-6 py-3 rounded-full shadow-2xl font-bold text-lg animate-pulse">
-                ⏱️ Time wasted: {Math.floor(timeWasted / 60)}h {timeWasted % 60}m
-              </div>
-            </div>
-
-            {/* Complexity Badge - Bottom Center */}
-            <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 z-20">
-              <div className="bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl font-semibold">
-                Complexity: <span className="text-yellow-400">{clickCount} clicks</span>, <span className="text-red-400">endless menus</span>, <span className="text-blue-400">0 fun</span>
+            {/* Simple header message */}
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-20">
+              <div className="text-lg font-medium text-slate-600">
+                The old way...
               </div>
             </div>
 
             {/* Split Screen Layout */}
-            <div className={`flex gap-6 p-6 rounded-2xl border-4 transition-all duration-500 ${
-              painStep >= 3 ? 'border-red-600 animate-pulse-border' : 'border-red-400'
+            <div className={`flex gap-6 p-6 rounded-2xl border-2 transition-all duration-500 ${
+              painStep >= 3 ? 'border-slate-400 shadow-2xl' : 'border-slate-300 shadow-lg'
             }`} style={{
-              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05))'
+              background: 'linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--background)) 100%)'
             }}>
 
               {/* LEFT: Google Sheets Interface Mockup */}
@@ -116,20 +87,12 @@ const IntroAnimation = ({ onComplete }) => {
                   <div className="text-xs text-slate-600 font-medium">Google Sheets - Untitled spreadsheet</div>
                 </div>
 
-                {/* Toolbar - animated clicking */}
+                {/* Toolbar */}
                 <div className="bg-[#fafafa] border-b border-slate-200 p-2 flex gap-1 items-center relative">
-                  {painStep === 1 && (
-                    <>
-                      {/* Animated cursor clicking through menus */}
-                      <div className="absolute top-2 left-4 w-4 h-4 animate-ping">
-                        <div className="w-4 h-4 bg-red-500 rounded-full opacity-75"></div>
-                      </div>
-                    </>
-                  )}
                   <div className="text-xs px-2 py-1 hover:bg-slate-100 rounded cursor-pointer">File</div>
                   <div className="text-xs px-2 py-1 hover:bg-slate-100 rounded cursor-pointer">Edit</div>
-                  <div className={`text-xs px-2 py-1 rounded cursor-pointer transition-colors ${painStep === 1 ? 'bg-blue-100 animate-pulse' : 'hover:bg-slate-100'}`}>Insert</div>
-                  <div className={`text-xs px-2 py-1 rounded cursor-pointer transition-colors ${painStep === 2 ? 'bg-blue-100 animate-pulse' : 'hover:bg-slate-100'}`}>Format</div>
+                  <div className={`text-xs px-2 py-1 rounded cursor-pointer transition-colors ${painStep === 1 ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>Insert</div>
+                  <div className={`text-xs px-2 py-1 rounded cursor-pointer transition-colors ${painStep === 2 ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>Format</div>
                   <div className="text-xs px-2 py-1 hover:bg-slate-100 rounded cursor-pointer">Data</div>
                   <div className="text-xs px-2 py-1 hover:bg-slate-100 rounded cursor-pointer">Tools</div>
                 </div>
@@ -137,83 +100,63 @@ const IntroAnimation = ({ onComplete }) => {
                 {/* Formatting toolbar - Step 2 animation */}
                 {painStep === 2 && (
                   <div className="bg-white border-b border-slate-200 p-2 flex gap-2 items-center animate-in slide-in-from-top duration-300">
-                    <div className="w-6 h-6 bg-purple-200 rounded animate-pulse"></div>
-                    <div className="w-6 h-6 bg-blue-200 rounded animate-pulse" style={{ animationDelay: '100ms' }}></div>
-                    <div className="w-6 h-6 bg-green-200 rounded animate-pulse" style={{ animationDelay: '200ms' }}></div>
-                    <div className="w-6 h-6 bg-yellow-200 rounded animate-pulse" style={{ animationDelay: '300ms' }}></div>
-                    <div className="w-6 h-6 bg-red-200 rounded animate-pulse" style={{ animationDelay: '400ms' }}></div>
-                    <div className="text-xs text-slate-500 ml-2 animate-pulse">Font... Size... Color... Border...</div>
+                    <div className="w-5 h-5 bg-slate-200 rounded"></div>
+                    <div className="w-5 h-5 bg-slate-200 rounded"></div>
+                    <div className="w-5 h-5 bg-slate-200 rounded"></div>
+                    <div className="text-xs text-slate-500 ml-2">Formatting...</div>
                   </div>
                 )}
 
                 {/* Chart preview area */}
                 <div className="p-4 relative" ref={chartRef}>
-                  {/* Ugly chart image */}
-                  <div className={`relative transition-all duration-500 ${
-                    painStep >= 3 ? 'opacity-100' : 'opacity-60'
-                  }`}>
-                    {/* X marks for Step 3 */}
-                    {painStep >= 3 && (
-                      <>
-                        <div className="absolute top-4 right-4 text-6xl text-red-600 animate-in zoom-in duration-300 font-bold">✗</div>
-                        <div className="absolute bottom-4 left-4 text-6xl text-red-600 animate-in zoom-in duration-300 font-bold" style={{ animationDelay: '150ms' }}>✗</div>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-8xl text-red-600 animate-in zoom-in duration-500 font-bold opacity-50" style={{ animationDelay: '300ms' }}>✗</div>
-                      </>
-                    )}
-                    <img
-                      src="/ugly_gsheet.png"
-                      alt="Ugly Google Sheets Chart"
-                      className="w-full h-auto rounded border border-slate-200"
-                    />
-                  </div>
+                  <img
+                    src="/ugly_gsheet.png"
+                    alt="Ugly Google Sheets Chart"
+                    className={`w-full h-auto rounded border border-slate-200 transition-all duration-500 ${
+                      painStep >= 3 ? 'opacity-100' : 'opacity-70'
+                    }`}
+                  />
                 </div>
               </div>
 
-              {/* RIGHT: Pain Points Bubbles */}
-              <div className="w-80 flex flex-col justify-center gap-6">
-                {/* Step 1: Fight with UI */}
+              {/* RIGHT: Pain Points */}
+              <div className="w-72 flex flex-col justify-center gap-4">
+                {/* Step 1 */}
                 {painStep >= 1 && (
                   <div className="animate-in fade-in slide-in-from-right duration-500">
-                    <div className="bg-white rounded-xl shadow-lg p-4 border-l-4 border-orange-500">
-                      <div className="flex items-start gap-3">
-                        <div className="text-3xl animate-bounce">😫</div>
-                        <div>
-                          <div className="font-bold text-slate-800">Step 1: Fight with the UI</div>
-                          <div className="text-sm text-slate-600 mt-1">Navigate through 5+ menus to insert a chart...</div>
+                    <div className="bg-white/80 backdrop-blur rounded-lg shadow-premium p-3 border border-slate-200">
+                      <div className="flex items-center gap-2">
+                        <div className="text-xl">😫</div>
+                        <div className="text-sm font-medium text-slate-700">
+                          Navigate endless menus
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Step 2: Format Everything */}
+                {/* Step 2 */}
                 {painStep >= 2 && (
                   <div className="animate-in fade-in slide-in-from-right duration-500" style={{ animationDelay: '200ms' }}>
-                    <div className="bg-white rounded-xl shadow-lg p-4 border-l-4 border-yellow-500">
-                      <div className="flex items-start gap-3">
-                        <div className="text-3xl animate-bounce">😤</div>
-                        <div>
-                          <div className="font-bold text-slate-800">Step 2: Manually format EVERYTHING</div>
-                          <div className="text-sm text-slate-600 mt-1">Colors, fonts, sizes, borders... one by one...</div>
+                    <div className="bg-white/80 backdrop-blur rounded-lg shadow-premium p-3 border border-slate-200">
+                      <div className="flex items-center gap-2">
+                        <div className="text-xl">🎨</div>
+                        <div className="text-sm font-medium text-slate-700">
+                          Format everything manually
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Step 3: Still Ugly */}
+                {/* Step 3 */}
                 {painStep >= 3 && (
                   <div className="animate-in fade-in slide-in-from-right duration-500" style={{ animationDelay: '200ms' }}>
-                    <div className="bg-white rounded-xl shadow-lg p-4 border-l-4 border-purple-500">
-                      <div className="flex items-start gap-3">
-                        <div className="flex gap-1 text-3xl">
-                          <span>🤦</span>
-                          <span>🤦‍♂️</span>
-                          <span>🤦‍♀️</span>
-                        </div>
-                        <div>
-                          <div className="font-bold text-slate-800">Step 3: Still looks ugly</div>
-                          <div className="text-sm text-slate-600 mt-1">After all that work... this is the result?!</div>
+                    <div className="bg-white/80 backdrop-blur rounded-lg shadow-premium p-3 border border-slate-200">
+                      <div className="flex items-center gap-2">
+                        <div className="text-xl">😔</div>
+                        <div className="text-sm font-medium text-slate-700">
+                          Still doesn't look great
                         </div>
                       </div>
                     </div>
