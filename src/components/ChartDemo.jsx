@@ -4,7 +4,6 @@ import confetti from 'canvas-confetti'
 
 const ChartDemo = ({ prompt, onComplete }) => {
   const svgRef = useRef(null)
-  const [progress, setProgress] = useState(0)
 
   useEffect(() => {
     if (!svgRef.current) return
@@ -402,8 +401,7 @@ const ChartDemo = ({ prompt, onComplete }) => {
           .style('opacity', 1)
           .on('end', () => {
             if (idx === annotations.length - 1) {
-              // Annotations complete - set progress to 100%
-              setProgress(100)
+              // Annotations complete
               // Trigger premium confetti explosion after a brief delay
               setTimeout(() => {
                 // Single stunning confetti explosion from the center
@@ -426,10 +424,6 @@ const ChartDemo = ({ prompt, onComplete }) => {
                 // Call onComplete after confetti settles
                 setTimeout(onComplete, 2000)
               }, 300)
-            } else {
-              // Update progress as annotations appear (70-100%)
-              const annotationProgress = 70 + ((idx + 1) / annotations.length) * 30
-              setProgress(Math.round(annotationProgress))
             }
           })
       })
@@ -473,8 +467,6 @@ const ChartDemo = ({ prompt, onComplete }) => {
         .attr('height', finalHeight)
         .on('end', function() {
           completedBars++
-          const progress = Math.round((completedBars / data.length) * 70)
-          setProgress(progress)
 
           // After last bar completes, add labels then annotations
           if (i === data.length - 1) {
@@ -520,24 +512,8 @@ const ChartDemo = ({ prompt, onComplete }) => {
   }, [prompt, onComplete])
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-muted-foreground">
-            Animation Progress
-          </span>
-          <div className="w-48 h-2 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-300 ease-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <span className="text-sm font-semibold text-primary">{progress}%</span>
-        </div>
-      </div>
-      <div className="flex justify-center bg-gradient-to-br from-white to-muted/30 dark:from-slate-950 dark:to-slate-900 rounded-xl p-8 shadow-premium">
-        <svg ref={svgRef}></svg>
-      </div>
+    <div className="flex justify-center bg-gradient-to-br from-white to-muted/30 dark:from-slate-950 dark:to-slate-900 rounded-xl p-8 shadow-premium">
+      <svg ref={svgRef}></svg>
     </div>
   )
 }
