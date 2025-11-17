@@ -178,4 +178,92 @@
   .animate-wiggle {
     animation: wiggle 0.3s ease-in-out;
   }
+
+  /* Crumple paper animation */
+  @keyframes crumple {
+    0% {
+      transform: scale(1) rotate(0deg);
+      filter: brightness(1);
+    }
+    20% {
+      transform: scale(0.95) rotate(-2deg);
+      filter: brightness(0.95);
+    }
+    40% {
+      transform: scale(0.85) rotate(2deg) translateY(-10px);
+      filter: brightness(0.9);
+    }
+    60% {
+      transform: scale(0.7) rotate(-5deg) translateY(-20px);
+      filter: brightness(0.85);
+    }
+    80% {
+      transform: scale(0.4) rotate(15deg) translateY(-30px);
+      filter: brightness(0.7);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(0.15) rotate(45deg) translateY(-40px);
+      filter: brightness(0.5);
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes crumple-ball-fly {
+    0% {
+      transform: translate(0, -40px) scale(0.15) rotate(45deg);
+      opacity: 0.6;
+    }
+    50% {
+      transform: translate(0, 100px) scale(0.2) rotate(180deg);
+      opacity: 0.9;
+    }
+    100% {
+      transform: translate(0, 200px) scale(0.25) rotate(360deg);
+      opacity: 1;
+    }
+  }
+
+  @keyframes dust-burst {
+    0% {
+      transform: scale(0);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.5);
+      opacity: 0.5;
+    }
+    100% {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
+
+  @keyframes bin-shake {
+    0%, 100% {
+      transform: translateX(0) rotate(0deg);
+    }
+    25% {
+      transform: translateX(-5px) rotate(-2deg);
+    }
+    75% {
+      transform: translateX(5px) rotate(2deg);
+    }
+  }
+
+  .animate-crumple {
+    animation: crumple 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  }
+
+  .animate-crumple-ball-fly {
+    animation: crumple-ball-fly 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .animate-dust-burst {
+    animation: dust-burst 0.6s ease-out forwards;
+  }
+
+  .animate-bin-shake {
+    animation: bin-shake 0.3s ease-in-out;
+  }
 }

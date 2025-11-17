@@ -3,10 +3,11 @@ import * as d3 from 'd3'
 import { Trash2, Sparkles } from 'lucide-react'
 
 const IntroAnimation = ({ onComplete }) => {
-  const [stage, setStage] = useState('pain') // pain, shatter, dispose, solution, complete
-  const [painStep, setPainStep] = useState(0) // 0-4 for each pain point step
+  const [stage, setStage] = useState('pain') // pain, crumple, dispose, solution, complete
+  const [painStep, setPainStep] = useState(0) // 0-3 for each pain point step
   const [timeWasted, setTimeWasted] = useState(0)
   const [clickCount, setClickCount] = useState(0)
+  const [isCrumpling, setIsCrumpling] = useState(false)
   const chartRef = useRef(null)
   const containerRef = useRef(null)
 
@@ -21,11 +22,15 @@ const IntroAnimation = ({ onComplete }) => {
     // Step 2: Manually format (2s)
     const step2Timer = setTimeout(() => setPainStep(3), 4500)
 
-    // Step 3: Still ugly finale (2.5s)
+    // Step 3: Still ugly finale (2.5s) then crumple
     const step3Timer = setTimeout(() => {
       setPainStep(3)
-      // Move to shatter stage
-      setTimeout(() => setStage('shatter'), 2500)
+      // Start crumple animation
+      setTimeout(() => {
+        setIsCrumpling(true)
+        // After crumple completes, move to dispose stage
+        setTimeout(() => setStage('dispose'), 1500)
+      }, 2500)
     }, 6500)
 
     return () => {
@@ -56,133 +61,6 @@ const IntroAnimation = ({ onComplete }) => {
     }
   }, [stage, painStep])
 
-  useEffect(() => {
-    if (stage === 'shatter' && chartRef.current) {
-      // Stage 2: Shatter animation
-      animateShatter()
-    } else if (stage === 'dispose') {
-      // Clean up any remaining shatter SVGs
-      d3.select(containerRef.current).selectAll('.shatter-svg').remove()
-    }
-  }, [stage])
-
-  const animateShatter = () => {
-    const chart = d3.select(chartRef.current)
-    const chartRect = chartRef.current.getBoundingClientRect()
-    const containerRect = containerRef.current.getBoundingClientRect()
-
-    // Calculate chart center relative to container
-    const offsetX = chartRect.left - containerRect.left
-    const offsetY = chartRect.top - containerRect.top
-    const centerX = offsetX + chartRect.width / 2
-    const centerY = offsetY + chartRect.height / 2
-
-    // Create shatter pieces (irregular polygon shards)
-    const pieces = []
-    const numPieces = 20
-
-    for (let i = 0; i < numPieces; i++) {
-      const angle = (i / numPieces) * Math.PI * 2
-      const radius = 30 + Math.random() * 40
-      const x = centerX + Math.cos(angle) * radius
-      const y = centerY + Math.sin(angle) * radius
-
-      pieces.push({
-        id: i,
-        x,
-        y,
-        rotation: Math.random() * 360,
-        velocityX: (Math.random() - 0.5) * 4,
-        velocityY: (Math.random() - 0.5) * 4,
-        rotationSpeed: (Math.random() - 0.5) * 10
-      })
-    }
-
-    // Hide original chart
-    chart.transition()
-      .duration(100)
-      .style('opacity', 0)
-
-    // Create SVG for shatter pieces
-    const svg = d3.select(containerRef.current)
-      .append('svg')
-      .attr('class', 'shatter-svg')
-      .style('position', 'absolute')
-      .style('top', 0)
-      .style('left', 0)
-      .style('width', '100%')
-      .style('height', '100%')
-      .style('pointer-events', 'none')
-      .style('z-index', 10)
-
-    // Create gradient for glass effect
-    const defs = svg.append('defs')
-    const gradientId = `glassGradient-${Date.now()}`
-    const glassGradient = defs.append('linearGradient')
-      .attr('id', gradientId)
-      .attr('x1', '0%')
-      .attr('y1', '0%')
-      .attr('x2', '100%')
-      .attr('y2', '100%')
-
-    glassGradient.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', '#ffffff')
-      .attr('stop-opacity', 0.9)
-
-    glassGradient.append('stop')
-      .attr('offset', '50%')
-      .attr('stop-color', '#e0e7ff')
-      .attr('stop-opacity', 0.7)
-
-    glassGradient.append('stop')
-      .attr('offset', '100%')
-      .attr('stop-color', '#c7d2fe')
-      .attr('stop-opacity', 0.8)
-
-    // Create shatter pieces
-    const shards = svg.selectAll('.shard')
-      .data(pieces)
-      .enter()
-      .append('g')
-      .attr('class', 'shard')
-      .attr('transform', d => `translate(${d.x}, ${d.y}) rotate(${d.rotation})`)
-
-    // Each shard is an irregular triangle
-    shards.append('path')
-      .attr('d', () => {
-        const size = 30 + Math.random() * 40
-        const points = [
-          [0, -size],
-          [size * 0.8, size * 0.5],
-          [-size * 0.8, size * 0.5]
-        ]
-        return `M ${points.map(p => p.join(',')).join(' L ')} Z`
-      })
-      .attr('fill', `url(#${gradientId})`)
-      .attr('stroke', '#818cf8')
-      .attr('stroke-width', 3)
-      .style('filter', 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5))')
-      .style('opacity', 1)
-
-    // Animate shards flying out and fading
-    shards.transition()
-      .duration(1200)
-      .ease(d3.easeQuadOut)
-      .attr('transform', d => {
-        const finalX = d.x + d.velocityX * 100
-        const finalY = d.y + d.velocityY * 100 + 50 // Gravity effect
-        const finalRotation = d.rotation + d.rotationSpeed * 50
-        return `translate(${finalX}, ${finalY}) rotate(${finalRotation})`
-      })
-      .style('opacity', 0)
-      .on('end', (d, i) => {
-        if (i === pieces.length - 1) {
-          // All shards animated, move to dispose stage
-          setTimeout(() => setStage('dispose'), 300)
-        }
-      })
-  }
 
   const handleDisposeComplete = () => {
     setTimeout(() => {
@@ -200,11 +78,11 @@ const IntroAnimation = ({ onComplete }) => {
       ref={containerRef}
       className="relative w-full h-[700px] flex items-center justify-center overflow-visible bg-gradient-to-br from-slate-50 to-slate-100"
     >
-      {/* Google Sheets Pain Workflow - visible during pain and shatter */}
-      {(stage === 'pain' || stage === 'shatter') && (
+      {/* Google Sheets Pain Workflow - visible during pain stage */}
+      {stage === 'pain' && (
         <div className="absolute inset-0 flex items-center justify-center px-8">
           {/* Split Screen Container */}
-          <div className="relative w-full max-w-6xl">
+          <div className={`relative w-full max-w-6xl ${isCrumpling ? 'animate-crumple' : ''}`}>
             {/* Time Wasted Counter - Top Center */}
             <div className="absolute -top-16 left-1/2 -translate-x-1/2 z-20">
               <div className="bg-red-500 text-white px-6 py-3 rounded-full shadow-2xl font-bold text-lg animate-pulse">
@@ -365,48 +243,92 @@ const IntroAnimation = ({ onComplete }) => {
 }
 
 const TrashBinAnimation = ({ onComplete }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [hasDropped, setHasDropped] = useState(false)
+  const [crumpledBallVisible, setCrumpledBallVisible] = useState(true)
+  const [isLidOpen, setIsLidOpen] = useState(false)
+  const [ballFlying, setBallFlying] = useState(false)
+  const [showDust, setShowDust] = useState(false)
+  const [binShake, setBinShake] = useState(false)
+  const [binDisappear, setBinDisappear] = useState(false)
+  const [message, setMessage] = useState('') // '', 'riddance', 'better-way'
 
   useEffect(() => {
-    // Open trash lid
-    setTimeout(() => setIsOpen(true), 200)
-
-    // Drop animation
-    setTimeout(() => setHasDropped(true), 800)
-
-    // Close lid and complete
+    // Timeline:
+    // 0ms: Crumpled ball appears at top, lid opens
     setTimeout(() => {
-      setIsOpen(false)
-      setTimeout(onComplete, 500)
+      setIsLidOpen(true)
+    }, 100)
+
+    // 400ms: Ball starts flying toward bin
+    setTimeout(() => {
+      setBallFlying(true)
+    }, 400)
+
+    // 1200ms: Ball reaches bin, create dust burst, shake bin, hide ball
+    setTimeout(() => {
+      setCrumpledBallVisible(false)
+      setShowDust(true)
+      setBinShake(true)
+    }, 1200)
+
+    // 1500ms: Close lid
+    setTimeout(() => {
+      setIsLidOpen(false)
+    }, 1500)
+
+    // 1800ms: Show "Good riddance!" message
+    setTimeout(() => {
+      setMessage('riddance')
     }, 1800)
+
+    // 2600ms: Transition to "There IS a better way..."
+    setTimeout(() => {
+      setMessage('better-way')
+    }, 2600)
+
+    // 3400ms: Start bin disappear animation
+    setTimeout(() => {
+      setBinDisappear(true)
+    }, 3400)
+
+    // 4400ms: Complete
+    setTimeout(() => {
+      onComplete()
+    }, 4400)
   }, [onComplete])
 
   return (
     <div className="relative flex flex-col items-center">
-      {/* Falling text */}
-      <div
-        className={`mb-8 text-2xl font-bold transition-all duration-1000 ${
-          hasDropped ? 'opacity-0 translate-y-32' : 'opacity-100 translate-y-0'
-        }`}
-      >
-        <span className="bg-gradient-to-r from-slate-600 to-slate-400 bg-clip-text text-transparent">
-          Old, Ugly Charts
-        </span>
-      </div>
+      {/* Crumpled paper ball */}
+      {crumpledBallVisible && (
+        <div className={`absolute top-0 w-20 h-20 ${ballFlying ? 'animate-crumple-ball-fly' : ''}`}>
+          <div className="w-full h-full rounded-full bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 shadow-2xl relative overflow-hidden">
+            {/* Crumple texture lines */}
+            <div className="absolute inset-0 opacity-40">
+              <div className="absolute top-2 left-3 w-8 h-0.5 bg-slate-600 rotate-45"></div>
+              <div className="absolute top-6 right-2 w-6 h-0.5 bg-slate-600 -rotate-12"></div>
+              <div className="absolute bottom-4 left-2 w-10 h-0.5 bg-slate-600 rotate-12"></div>
+              <div className="absolute top-1/2 left-1/2 w-12 h-0.5 bg-slate-700 -rotate-45"></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Trash Bin */}
-      <div className="relative">
+      <div className={`relative transition-all duration-1000 ${
+        binDisappear ? 'opacity-0 scale-0 rotate-180' : 'opacity-100 scale-100'
+      } ${binShake ? 'animate-bin-shake' : ''}`}>
+        {/* Dust burst effect */}
+        {showDust && (
+          <>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-slate-400/40 animate-dust-burst"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 rounded-full bg-slate-300/30 animate-dust-burst" style={{ animationDelay: '100ms' }}></div>
+          </>
+        )}
+
         {/* Trash bin body */}
         <div className="relative w-32 h-40 bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg shadow-2xl border-4 border-slate-600">
           {/* Trash bin opening */}
-          <div className="absolute top-0 left-0 right-0 h-8 bg-slate-900/50 rounded-t-lg overflow-hidden">
-            <div className={`w-full h-full bg-slate-900/30 transition-all duration-500 ${
-              hasDropped ? 'opacity-0' : 'opacity-100'
-            }`}>
-              {/* Trash pieces falling in */}
-            </div>
-          </div>
+          <div className="absolute top-0 left-0 right-0 h-8 bg-slate-900/50 rounded-t-lg overflow-hidden"></div>
 
           {/* Trash bin ridges */}
           <div className="absolute top-12 left-0 right-0 h-0.5 bg-slate-600"></div>
@@ -417,7 +339,7 @@ const TrashBinAnimation = ({ onComplete }) => {
         {/* Trash bin lid */}
         <div
           className={`absolute -top-4 left-1/2 -translate-x-1/2 w-36 h-6 bg-gradient-to-b from-slate-600 to-slate-700 rounded-lg shadow-xl border-2 border-slate-500 transition-all duration-500 origin-left ${
-            isOpen ? '-rotate-45 -translate-y-4 translate-x-2' : 'rotate-0'
+            isLidOpen ? '-rotate-60 -translate-y-6 translate-x-4' : 'rotate-0'
           }`}
         >
           {/* Lid handle */}
@@ -430,16 +352,30 @@ const TrashBinAnimation = ({ onComplete }) => {
         </div>
       </div>
 
-      {/* Success message */}
-      <div
-        className={`mt-8 text-lg font-semibold transition-all duration-700 ${
-          hasDropped ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-        }`}
-      >
-        <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-          ✓ Gone for good!
-        </span>
+      {/* Messages */}
+      <div className="mt-16 h-20 flex items-center justify-center">
+        {message === 'riddance' && (
+          <div className="animate-in fade-in zoom-in duration-500">
+            <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Good riddance! 🎉
+            </div>
+          </div>
+        )}
+        {message === 'better-way' && (
+          <div className="animate-in fade-in zoom-in duration-700">
+            <div className="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent text-center">
+              There IS a better way...
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Scorch mark left behind after bin disappears */}
+      {binDisappear && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-in fade-in duration-500">
+          <div className="w-40 h-4 rounded-full bg-slate-800/20 blur-sm"></div>
+        </div>
+      )}
     </div>
   )
 }
