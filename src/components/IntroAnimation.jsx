@@ -169,7 +169,7 @@ const IntroAnimation = ({ onComplete }) => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[600px] flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100"
+      className="relative w-full h-[700px] flex items-center justify-center overflow-visible bg-gradient-to-br from-slate-50 to-slate-100"
     >
       {/* Chart and Thought Bubbles - visible during thoughts and shatter */}
       {(stage === 'thoughts' || stage === 'shatter') && (
@@ -177,16 +177,16 @@ const IntroAnimation = ({ onComplete }) => {
           <div className="relative flex flex-col items-center">
             {/* Frustrated Person - Top */}
             {stage === 'thoughts' && visibleBubbles >= 1 && (
-              <div className="absolute -top-48 left-1/2 -translate-x-1/2 animate-in fade-in zoom-in duration-700 flex flex-col items-center gap-2">
-                <div className="text-6xl animate-bounce">😫</div>
+              <div className="absolute -top-36 left-1/2 -translate-x-1/2 animate-in fade-in zoom-in duration-700 flex flex-col items-center gap-1">
+                <div className="text-5xl animate-bounce">😫</div>
                 <div className="text-xs text-slate-600 font-medium">*pulling hair out*</div>
               </div>
             )}
 
             {/* Main Question - Large Font */}
             {stage === 'thoughts' && visibleBubbles >= 2 && (
-              <div className="absolute -top-24 left-1/2 -translate-x-1/2 animate-in fade-in slide-in-from-top duration-700" style={{ animationDelay: '800ms' }}>
-                <h3 className="text-4xl font-bold text-slate-800 text-center whitespace-nowrap">
+              <div className="absolute -top-16 left-1/2 -translate-x-1/2 animate-in fade-in slide-in-from-top duration-700" style={{ animationDelay: '800ms' }}>
+                <h3 className="text-3xl font-bold text-slate-800 text-center whitespace-nowrap">
                   Are you still using <span className="text-red-600">THIS?</span>
                 </h3>
               </div>
@@ -195,11 +195,11 @@ const IntroAnimation = ({ onComplete }) => {
             {/* Frustrated person on sides */}
             {stage === 'thoughts' && visibleBubbles >= 3 && (
               <>
-                <div className="absolute top-1/2 -left-32 -translate-y-1/2 animate-in fade-in zoom-in duration-700" style={{ animationDelay: '1200ms' }}>
-                  <div className="text-5xl transform -rotate-12">🤦</div>
+                <div className="absolute top-1/2 -left-20 -translate-y-1/2 animate-in fade-in zoom-in duration-700" style={{ animationDelay: '1200ms' }}>
+                  <div className="text-4xl transform -rotate-12">🤦</div>
                 </div>
-                <div className="absolute top-1/2 -right-32 -translate-y-1/2 animate-in fade-in zoom-in duration-700" style={{ animationDelay: '1400ms' }}>
-                  <div className="text-5xl transform rotate-12">🤦‍♂️</div>
+                <div className="absolute top-1/2 -right-20 -translate-y-1/2 animate-in fade-in zoom-in duration-700" style={{ animationDelay: '1400ms' }}>
+                  <div className="text-4xl transform rotate-12">🤦‍♂️</div>
                 </div>
               </>
             )}
